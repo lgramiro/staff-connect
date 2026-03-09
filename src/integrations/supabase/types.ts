@@ -486,6 +486,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      setup_user_profile: {
+        Args: {
+          p_nome?: string
+          p_role?: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "estabelecimento" | "profissional"
