@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,15 +77,20 @@ const Auth = () => {
       if (error) {
         toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
       } else {
-        // onAuthStateChange will set the profile; redirect after a tick
         toast({ title: "Login realizado!", description: "Redirecionando..." });
-        // We need to fetch profile to know the role for redirect
-        // Small delay to allow profile to be fetched
-        setTimeout(() => {
-          // The redirect will be handled by checking profile in useEffect below
-          // For now, a safe fallback:
-          navigate("/app/profissional");
-        }, 500);
+        // Fetch profile to determine redirect
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const { data: prof } = await supabase.from("profiles").select("role").eq("id", authUser.id).single();
+          const roleRoutes: Record<string, string> = {
+            admin: "/admin",
+            estabelecimento: "/app/estabelecimento",
+            profissional: "/app/profissional",
+          };
+          navigate(roleRoutes[prof?.role || "profissional"] || "/app/profissional");
+        } else {
+          navigate("/");
+        }
       }
     }
   };

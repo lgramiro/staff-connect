@@ -14,6 +14,257 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_logs: {
+        Row: {
+          acao: string
+          admin_id: string
+          created_at: string
+          detalhes: Json | null
+          id: string
+        }
+        Insert: {
+          acao: string
+          admin_id: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+        }
+        Update: {
+          acao?: string
+          admin_id?: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+        }
+        Relationships: []
+      }
+      assinaturas: {
+        Row: {
+          created_at: string
+          estabelecimento_id: string
+          fim: string | null
+          id: string
+          inicio: string
+          plano_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estabelecimento_id: string
+          fim?: string | null
+          id?: string
+          inicio?: string
+          plano_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estabelecimento_id?: string
+          fim?: string | null
+          id?: string
+          inicio?: string
+          plano_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assinaturas_estabelecimento_id_fkey"
+            columns: ["estabelecimento_id"]
+            isOneToOne: false
+            referencedRelation: "estabelecimentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assinaturas_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacoes: {
+        Row: {
+          avaliado_id: string
+          avaliador_id: string
+          candidatura_id: string
+          comentario: string | null
+          created_at: string
+          id: string
+          nota: number
+        }
+        Insert: {
+          avaliado_id: string
+          avaliador_id: string
+          candidatura_id: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          nota: number
+        }
+        Update: {
+          avaliado_id?: string
+          avaliador_id?: string
+          candidatura_id?: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          nota?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_candidatura_id_fkey"
+            columns: ["candidatura_id"]
+            isOneToOne: false
+            referencedRelation: "candidaturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidaturas: {
+        Row: {
+          created_at: string
+          id: string
+          profissional_id: string
+          slot_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profissional_id: string
+          slot_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profissional_id?: string
+          slot_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidaturas_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidaturas_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estabelecimentos: {
+        Row: {
+          cidade: string
+          created_at: string
+          endereco: string
+          estado: string
+          funcoes_utilizadas: string[] | null
+          id: string
+          logo_url: string | null
+          nome: string
+          onboarding_completo: boolean
+          responsavel: string
+          telefone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cidade?: string
+          created_at?: string
+          endereco?: string
+          estado?: string
+          funcoes_utilizadas?: string[] | null
+          id?: string
+          logo_url?: string | null
+          nome?: string
+          onboarding_completo?: boolean
+          responsavel?: string
+          telefone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cidade?: string
+          created_at?: string
+          endereco?: string
+          estado?: string
+          funcoes_utilizadas?: string[] | null
+          id?: string
+          logo_url?: string | null
+          nome?: string
+          onboarding_completo?: boolean
+          responsavel?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      planos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          destaques: boolean
+          exportar: boolean
+          favoritos: boolean
+          id: string
+          limite_slots: number | null
+          nome: string
+          preco: number
+          recorrencia: boolean
+          relatorios: boolean
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          destaques?: boolean
+          exportar?: boolean
+          favoritos?: boolean
+          id?: string
+          limite_slots?: number | null
+          nome: string
+          preco?: number
+          recorrencia?: boolean
+          relatorios?: boolean
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          destaques?: boolean
+          exportar?: boolean
+          favoritos?: boolean
+          id?: string
+          limite_slots?: number | null
+          nome?: string
+          preco?: number
+          recorrencia?: boolean
+          relatorios?: boolean
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -46,6 +297,164 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      profissionais: {
+        Row: {
+          certificacoes: string[] | null
+          cidade: string
+          created_at: string
+          curriculo_url: string | null
+          diaria_minima: number | null
+          disponibilidade: string[] | null
+          estado: string
+          experiencia: string | null
+          foto_url: string | null
+          funcoes: string[] | null
+          id: string
+          idiomas: string[] | null
+          instagram: string | null
+          linkedin: string | null
+          nome: string
+          onboarding_completo: boolean
+          portfolio: string | null
+          total_avaliacoes: number
+          trust_score: number
+          updated_at: string
+          user_id: string
+          whatsapp: string
+          youtube: string | null
+        }
+        Insert: {
+          certificacoes?: string[] | null
+          cidade?: string
+          created_at?: string
+          curriculo_url?: string | null
+          diaria_minima?: number | null
+          disponibilidade?: string[] | null
+          estado?: string
+          experiencia?: string | null
+          foto_url?: string | null
+          funcoes?: string[] | null
+          id?: string
+          idiomas?: string[] | null
+          instagram?: string | null
+          linkedin?: string | null
+          nome?: string
+          onboarding_completo?: boolean
+          portfolio?: string | null
+          total_avaliacoes?: number
+          trust_score?: number
+          updated_at?: string
+          user_id: string
+          whatsapp?: string
+          youtube?: string | null
+        }
+        Update: {
+          certificacoes?: string[] | null
+          cidade?: string
+          created_at?: string
+          curriculo_url?: string | null
+          diaria_minima?: number | null
+          disponibilidade?: string[] | null
+          estado?: string
+          experiencia?: string | null
+          foto_url?: string | null
+          funcoes?: string[] | null
+          id?: string
+          idiomas?: string[] | null
+          instagram?: string | null
+          linkedin?: string | null
+          nome?: string
+          onboarding_completo?: boolean
+          portfolio?: string | null
+          total_avaliacoes?: number
+          trust_score?: number
+          updated_at?: string
+          user_id?: string
+          whatsapp?: string
+          youtube?: string | null
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          chave: string
+          descricao: string | null
+          id: string
+          updated_at: string
+          valor: string | null
+        }
+        Insert: {
+          chave: string
+          descricao?: string | null
+          id?: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Update: {
+          chave?: string
+          descricao?: string | null
+          id?: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Relationships: []
+      }
+      slots: {
+        Row: {
+          created_at: string
+          data: string
+          endereco: string | null
+          estabelecimento_id: string
+          funcao: string
+          horario_fim: string
+          horario_inicio: string
+          id: string
+          quantidade: number
+          status: string
+          updated_at: string
+          urgente: boolean
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          endereco?: string | null
+          estabelecimento_id: string
+          funcao: string
+          horario_fim: string
+          horario_inicio: string
+          id?: string
+          quantidade?: number
+          status?: string
+          updated_at?: string
+          urgente?: boolean
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          endereco?: string | null
+          estabelecimento_id?: string
+          funcao?: string
+          horario_fim?: string
+          horario_inicio?: string
+          id?: string
+          quantidade?: number
+          status?: string
+          updated_at?: string
+          urgente?: boolean
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slots_estabelecimento_id_fkey"
+            columns: ["estabelecimento_id"]
+            isOneToOne: false
+            referencedRelation: "estabelecimentos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
