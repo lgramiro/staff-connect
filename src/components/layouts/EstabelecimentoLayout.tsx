@@ -1,5 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   CalendarDays, 
   Briefcase, 
@@ -12,7 +13,7 @@ import {
   Menu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+
 
 interface EstabelecimentoLayoutProps {
   children: ReactNode;
@@ -31,7 +32,10 @@ export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) 
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 

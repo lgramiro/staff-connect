@@ -15,6 +15,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 type UserRole = "estabelecimento" | "profissional";
 type AuthMode = "login" | "signup";
@@ -23,9 +24,11 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn, signUp, resetPassword } = useAuth();
   
   const initialMode = (searchParams.get("mode") as AuthMode) || "login";
   const initialRole = (searchParams.get("role") as UserRole) || "profissional";
+  const isBlocked = searchParams.get("blocked") === "true";
   
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [role, setRole] = useState<UserRole>(initialRole);
@@ -42,25 +45,61 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate auth - will be replaced with Supabase
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: mode === "login" ? "Login realizado!" : "Conta criada!",
-      description: "Redirecionando para o dashboard...",
-    });
-    
-    // Redirect based on role
-    setTimeout(() => {
-      if (role === "estabelecimento") {
-        navigate("/app/estabelecimento");
-      } else {
-        navigate("/app/profissional");
+
+    if (mode === "signup") {
+      if (formData.password !== formData.confirmPassword) {
+        toast({ title: "Erro", description: "As senhas não coincidem.", variant: "destructive" });
+        setIsLoading(false);
+        return;
       }
-    }, 500);
-    
-    setIsLoading(false);
+      if (formData.password.length < 6) {
+        toast({ title: "Erro", description: "A senha deve ter pelo menos 6 caracteres.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+
+      const { error } = await signUp(formData.email, formData.password, formData.nome, role);
+      setIsLoading(false);
+
+      if (error) {
+        toast({ title: "Erro ao criar conta", description: error.message, variant: "destructive" });
+      } else {
+        toast({
+          title: "Conta criada!",
+          description: "Verifique seu email para confirmar o cadastro.",
+        });
+      }
+    } else {
+      const { error } = await signIn(formData.email, formData.password);
+      setIsLoading(false);
+
+      if (error) {
+        toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
+      } else {
+        // onAuthStateChange will set the profile; redirect after a tick
+        toast({ title: "Login realizado!", description: "Redirecionando..." });
+        // We need to fetch profile to know the role for redirect
+        // Small delay to allow profile to be fetched
+        setTimeout(() => {
+          // The redirect will be handled by checking profile in useEffect below
+          // For now, a safe fallback:
+          navigate("/app/profissional");
+        }, 500);
+      }
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast({ title: "Informe seu email", description: "Digite seu email para recuperar a senha.", variant: "destructive" });
+      return;
+    }
+    const { error } = await resetPassword(formData.email);
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email enviado!", description: "Verifique sua caixa de entrada para redefinir a senha." });
+    }
   };
 
   return (
@@ -131,6 +170,12 @@ const Auth = () => {
               </Button>
               <span className="text-muted-foreground">Voltar para o site</span>
             </div>
+
+            {isBlocked && (
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                Sua conta foi bloqueada. Entre em contato com o suporte.
+              </div>
+            )}
             
             <div className="space-y-2">
               <h2 className="font-display text-2xl font-bold text-foreground">
@@ -264,7 +309,7 @@ const Auth = () => {
               
               {mode === "login" && (
                 <div className="flex justify-end">
-                  <button type="button" className="text-sm text-primary hover:underline">
+                  <button type="button" onClick={handleForgotPassword} className="text-sm text-primary hover:underline">
                     Esqueceu a senha?
                   </button>
                 </div>

@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Home, 
   Search, 
@@ -25,8 +26,10 @@ const navItems = [
 export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 

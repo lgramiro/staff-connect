@@ -1,5 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
   Building2, 
@@ -39,7 +40,10 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const handleLogout = () => {
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 
