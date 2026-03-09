@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { session, profile, loading } = useAuth();
+  const { session, profile, loading, userRoles, activeRole } = useAuth();
   const { onboardingCompleto, loading: onboardingLoading } = useOnboardingStatus();
 
   if (loading || onboardingLoading) {
@@ -27,18 +27,25 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/auth?mode=login&blocked=true" replace />;
   }
 
-  if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+  // If user has multiple roles and hasn't picked one yet, redirect to picker
+  if (userRoles.length > 1 && !activeRole && !window.location.pathname.startsWith("/escolher-perfil")) {
+    return <Navigate to="/escolher-perfil" replace />;
+  }
+
+  const effectiveRole = activeRole || profile?.role;
+
+  if (allowedRoles && effectiveRole && !allowedRoles.includes(effectiveRole)) {
     const roleRoutes: Record<string, string> = {
       admin: "/admin",
       estabelecimento: "/app/estabelecimento",
       profissional: "/app/profissional",
     };
-    return <Navigate to={roleRoutes[profile.role] || "/"} replace />;
+    return <Navigate to={roleRoutes[effectiveRole] || "/"} replace />;
   }
 
   // Redirect to onboarding if not complete (except for onboarding routes)
-  if (profile && profile.role !== "admin" && onboardingCompleto === false) {
-    const onboardingRoute = `/onboarding/${profile.role}`;
+  if (effectiveRole && effectiveRole !== "admin" && onboardingCompleto === false) {
+    const onboardingRoute = `/onboarding/${effectiveRole}`;
     if (!window.location.pathname.startsWith("/onboarding")) {
       return <Navigate to={onboardingRoute} replace />;
     }

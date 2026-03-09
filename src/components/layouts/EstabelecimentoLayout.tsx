@@ -1,30 +1,30 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { 
   CalendarDays, 
-  Briefcase, 
-  History, 
-  User, 
-  CreditCard,
+  Users, 
+  Clock, 
+  Star,
+  Plus,
   ChefHat,
   LogOut,
   Bell,
-  Menu
+  Menu,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 
 interface EstabelecimentoLayoutProps {
   children: ReactNode;
 }
 
 const navItems = [
-  { icon: CalendarDays, label: "Calendário", path: "/app/estabelecimento" },
-  { icon: Briefcase, label: "Vagas", path: "/app/estabelecimento/vagas" },
-  { icon: History, label: "Histórico", path: "/app/estabelecimento/historico" },
-  { icon: User, label: "Perfil", path: "/app/estabelecimento/perfil" },
-  { icon: CreditCard, label: "Plano", path: "/app/estabelecimento/plano" },
+  { icon: CalendarDays, label: "Dashboard", path: "/app/estabelecimento" },
+  { icon: Users, label: "Candidaturas", path: "/app/estabelecimento/candidaturas" },
+  { icon: Clock, label: "Hoje", path: "/app/estabelecimento/hoje" },
+  { icon: Star, label: "Avaliar", path: "/app/estabelecimento/avaliar" },
 ];
 
 export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) => {
@@ -83,6 +83,7 @@ export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) 
           </div>
 
           <div className="flex items-center gap-2">
+            <RoleSwitcher />
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
@@ -119,6 +120,16 @@ export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) 
                   </Link>
                 );
               })}
+              <Link to="/app/estabelecimento/criar-escala" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-muted-foreground">
+                  <Plus className="w-5 h-5 mr-3" />Criar Escala
+                </Button>
+              </Link>
+              <Link to="/app/estabelecimento/vaga-urgente" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-muted-foreground">
+                  <Zap className="w-5 h-5 mr-3" />Vaga Urgente
+                </Button>
+              </Link>
             </nav>
           </div>
         </div>
@@ -127,7 +138,7 @@ export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) 
       {/* Bottom Mobile Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 glass-strong border-t border-border md:hidden">
         <div className="flex justify-around py-2">
-          {navItems.slice(0, 4).map((item) => {
+          {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link key={item.path} to={item.path} className="flex flex-col items-center p-2">
