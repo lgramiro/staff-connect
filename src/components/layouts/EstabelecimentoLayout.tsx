@@ -32,7 +32,10 @@ export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) 
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 
