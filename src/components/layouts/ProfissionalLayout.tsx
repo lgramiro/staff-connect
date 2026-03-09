@@ -26,8 +26,10 @@ const navItems = [
 export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 
