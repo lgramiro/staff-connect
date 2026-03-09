@@ -118,7 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, nome: string, role: AppRole) => {
-    const { error } = await supabase.auth.signUp({
+    const { error, data } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -126,6 +126,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         emailRedirectTo: window.location.origin,
       },
     });
+    
+    // Fallback: if trigger didn't create profile, use RPC
+    if (!error && data.user) {
+      try {
+        await (supabase.rpc as any)('setup_user_profile', { p_nome: nome, p_role: role });
+      } catch (e) {
+        console.log('Profile may have been created by trigger already');
+      }
+    }
+    
     return { error: error as Error | null };
   };
 
