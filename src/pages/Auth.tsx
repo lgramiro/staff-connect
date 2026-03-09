@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,9 @@ const Auth = () => {
   const [role, setRole] = useState<UserRole>(initialRole);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const [redirectError, setRedirectError] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [formData, setFormData] = useState({
     email: "",
@@ -43,9 +46,85 @@ const Auth = () => {
     nome: ""
   });
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  const redirectByProfile = async () => {
+    setRedirecting(true);
+    setRedirectError(null);
+
+    // Safety timeout - 3 seconds
+    timeoutRef.current = setTimeout(() => {
+      console.error("[Auth] Timeout de redirecionamento atingido (3s)");
+      setRedirecting(false);
+      setRedirectError("O redirecionamento demorou muito. Verifique sua conexão e tente novamente.");
+    }, 3000);
+
+    try {
+      // Step 1: Get authenticated user
+      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
+      console.log("[Auth] Usuário autenticado:", authUser?.id, authUser?.email);
+
+      if (userError || !authUser) {
+        console.error("[Auth] Erro ao buscar usuário:", userError);
+        clearTimeout(timeoutRef.current!);
+        setRedirecting(false);
+        setRedirectError("Erro ao buscar usuário autenticado.");
+        return;
+      }
+
+      // Step 2: Fetch profile
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", authUser.id)
+        .single();
+
+      console.log("[Auth] Profile encontrado:", profile);
+
+      if (profileError || !profile) {
+        console.error("[Auth] Erro ao buscar perfil:", profileError);
+        clearTimeout(timeoutRef.current!);
+        setRedirecting(false);
+        setRedirectError("Perfil do usuário não encontrado.");
+        return;
+      }
+
+      // Step 3: Read role and normalize to lowercase
+      const rawRole = profile.role;
+      const normalizedRole = typeof rawRole === "string" ? rawRole.toLowerCase() : "profissional";
+      console.log("[Auth] Role encontrado:", rawRole, "-> normalizado:", normalizedRole);
+
+      // Step 4: Set active role and redirect
+      setActiveRole(normalizedRole as any);
+
+      const roleRoutes: Record<string, string> = {
+        admin: "/admin",
+        profissional: "/app/profissional",
+        estabelecimento: "/app/estabelecimento",
+      };
+
+      const targetRoute = roleRoutes[normalizedRole] || "/app/profissional";
+      console.log("[Auth] Rota escolhida:", targetRoute);
+
+      clearTimeout(timeoutRef.current!);
+      navigate(targetRoute, { replace: true });
+    } catch (err) {
+      console.error("[Auth] Erro inesperado no redirect:", err);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setRedirecting(false);
+      setRedirectError("Erro inesperado. Tente novamente.");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setRedirectError(null);
 
     if (mode === "signup") {
       if (formData.password !== formData.confirmPassword) {
@@ -71,42 +150,14 @@ const Auth = () => {
         });
       }
     } else {
-      const { error, roles } = await signIn(formData.email, formData.password);
+      const { error } = await signIn(formData.email, formData.password);
       setIsLoading(false);
 
       if (error) {
         toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Login realizado!", description: "Redirecionando..." });
-        
-        if (roles && roles.length > 1) {
-          // Multiple roles - show picker
-          navigate("/escolher-perfil");
-        } else if (roles && roles.length === 1) {
-          // Single role - go directly
-          const r = roles[0];
-          setActiveRole(r);
-          const roleRoutes: Record<string, string> = {
-            admin: "/admin",
-            estabelecimento: "/app/estabelecimento",
-            profissional: "/app/profissional",
-          };
-          navigate(roleRoutes[r] || "/app/profissional");
-        } else {
-          // Fallback: use profile role
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          if (authUser) {
-            const { data: prof } = await supabase.from("profiles").select("role").eq("id", authUser.id).single();
-            const r = prof?.role || "profissional";
-            setActiveRole(r);
-            const roleRoutes: Record<string, string> = {
-              admin: "/admin",
-              estabelecimento: "/app/estabelecimento",
-              profissional: "/app/profissional",
-            };
-            navigate(roleRoutes[r]);
-          }
-        }
+        await redirectByProfile();
       }
     }
   };
@@ -123,6 +174,36 @@ const Auth = () => {
       toast({ title: "Email enviado!", description: "Verifique sua caixa de entrada para redefinir a senha." });
     }
   };
+
+  // Show redirecting state
+  if (redirecting) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <p className="text-muted-foreground">Redirecionando...</p>
+      </div>
+    );
+  }
+
+  // Show redirect error
+  if (redirectError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4 px-4">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-md text-center space-y-4">
+          <p className="text-destructive font-medium">{redirectError}</p>
+          <Button 
+            onClick={() => {
+              setRedirectError(null);
+              setRedirecting(false);
+            }}
+            variant="outline"
+          >
+            Voltar ao Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-warm flex">

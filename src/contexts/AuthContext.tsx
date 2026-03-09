@@ -22,12 +22,22 @@ interface AuthContextType {
   activeRole: AppRole | null;
   setActiveRole: (role: AppRole) => void;
   signUp: (email: string, password: string, nome: string, role: AppRole) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null; roles?: AppRole[] }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Normalize role from DB (may be uppercase) to lowercase AppRole
+const normalizeRole = (role: string | undefined | null): AppRole => {
+  if (!role) return "profissional";
+  const lower = role.toLowerCase();
+  if (lower === "admin" || lower === "estabelecimento" || lower === "profissional") {
+    return lower as AppRole;
+  }
+  return "profissional";
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -45,8 +55,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .single();
 
     if (!error && data) {
-      setProfile(data as Profile);
+      // Normalize the profile data - handle potential column name differences
+      const normalizedProfile: Profile = {
+        id: data.id,
+        nome: (data as any).nome || (data as any).full_name || "",
+        email: (data as any).email || "",
+        role: normalizeRole(data.role),
+        is_blocked: data.is_blocked || false,
+        avatar_url: (data as any).avatar_url || null,
+      };
+      console.log("[AuthContext] Profile loaded:", normalizedProfile);
+      setProfile(normalizedProfile);
+      return normalizedProfile;
     }
+    return null;
   };
 
   const fetchUserRoles = async (userId: string): Promise<AppRole[]> => {
@@ -54,7 +76,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    const roles = (data || []).map((r: any) => r.role as AppRole);
+    const roles = (data || []).map((r: any) => normalizeRole(r.role));
+    console.log("[AuthContext] User roles from user_roles table:", roles);
     setUserRoles(roles);
     return roles;
   };
@@ -71,16 +94,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchUserRoles(session.user.id).then(roles => {
-              const savedRole = localStorage.getItem("temstaff_active_role") as AppRole | null;
-              if (savedRole && roles.includes(savedRole)) {
-                setActiveRoleState(savedRole);
-              } else if (roles.length === 1) {
-                setActiveRoleState(roles[0]);
-              }
-            });
+          // Use setTimeout to avoid blocking the auth state change
+          setTimeout(async () => {
+            const prof = await fetchProfile(session.user.id);
+            const roles = await fetchUserRoles(session.user.id);
+            
+            // If user_roles is empty, use profile.role as fallback
+            const effectiveRoles = roles.length > 0 ? roles : (prof ? [prof.role] : []);
+            if (roles.length === 0 && prof) {
+              setUserRoles([prof.role]);
+            }
+
+            const savedRole = localStorage.getItem("temstaff_active_role") as AppRole | null;
+            if (savedRole && effectiveRoles.includes(savedRole)) {
+              setActiveRoleState(savedRole);
+            } else if (effectiveRoles.length === 1) {
+              setActiveRoleState(effectiveRoles[0]);
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -97,19 +127,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchUserRoles(session.user.id).then(roles => {
-          const savedRole = localStorage.getItem("temstaff_active_role") as AppRole | null;
-          if (savedRole && roles.includes(savedRole)) {
-            setActiveRoleState(savedRole);
-          } else if (roles.length === 1) {
-            setActiveRoleState(roles[0]);
-          }
-        });
+        const prof = await fetchProfile(session.user.id);
+        const roles = await fetchUserRoles(session.user.id);
+        
+        const effectiveRoles = roles.length > 0 ? roles : (prof ? [prof.role] : []);
+        if (roles.length === 0 && prof) {
+          setUserRoles([prof.role]);
+        }
+
+        const savedRole = localStorage.getItem("temstaff_active_role") as AppRole | null;
+        if (savedRole && effectiveRoles.includes(savedRole)) {
+          setActiveRoleState(savedRole);
+        } else if (effectiveRoles.length === 1) {
+          setActiveRoleState(effectiveRoles[0]);
+        }
       }
       setLoading(false);
     });
@@ -127,12 +162,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     });
     
-    // Fallback: if trigger didn't create profile, use RPC
     if (!error && data.user) {
       try {
         await (supabase.rpc as any)('setup_user_profile', { p_nome: nome, p_role: role });
       } catch (e) {
-        console.log('Profile may have been created by trigger already');
+        console.log('[AuthContext] Profile may have been created by trigger already');
       }
     }
     
@@ -140,11 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-    if (!error && data.user) {
-      const roles = await fetchUserRoles(data.user.id);
-      return { error: null, roles };
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error as Error | null };
   };
 
