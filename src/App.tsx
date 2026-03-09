@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import RolePicker from "./pages/RolePicker";
 import NotFound from "./pages/NotFound";
 
 // Onboarding
@@ -48,6 +49,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/escolher-perfil" element={
+              <ProtectedRoute><RolePicker /></ProtectedRoute>
+            } />
 
             {/* Onboarding */}
             <Route path="/onboarding/profissional" element={

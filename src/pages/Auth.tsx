@@ -25,7 +25,7 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword, setActiveRole } = useAuth();
   
   const initialMode = (searchParams.get("mode") as AuthMode) || "login";
   const initialRole = (searchParams.get("role") as UserRole) || "profissional";
@@ -71,25 +71,41 @@ const Auth = () => {
         });
       }
     } else {
-      const { error } = await signIn(formData.email, formData.password);
+      const { error, roles } = await signIn(formData.email, formData.password);
       setIsLoading(false);
 
       if (error) {
         toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Login realizado!", description: "Redirecionando..." });
-        // Fetch profile to determine redirect
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-          const { data: prof } = await supabase.from("profiles").select("role").eq("id", authUser.id).single();
+        
+        if (roles && roles.length > 1) {
+          // Multiple roles - show picker
+          navigate("/escolher-perfil");
+        } else if (roles && roles.length === 1) {
+          // Single role - go directly
+          const r = roles[0];
+          setActiveRole(r);
           const roleRoutes: Record<string, string> = {
             admin: "/admin",
             estabelecimento: "/app/estabelecimento",
             profissional: "/app/profissional",
           };
-          navigate(roleRoutes[prof?.role || "profissional"] || "/app/profissional");
+          navigate(roleRoutes[r] || "/app/profissional");
         } else {
-          navigate("/");
+          // Fallback: use profile role
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            const { data: prof } = await supabase.from("profiles").select("role").eq("id", authUser.id).single();
+            const r = prof?.role || "profissional";
+            setActiveRole(r);
+            const roleRoutes: Record<string, string> = {
+              admin: "/admin",
+              estabelecimento: "/app/estabelecimento",
+              profissional: "/app/profissional",
+            };
+            navigate(roleRoutes[r]);
+          }
         }
       }
     }
@@ -137,7 +153,7 @@ const Auth = () => {
           </h1>
           <p className="text-primary-foreground/80 text-lg max-w-md">
             {role === "estabelecimento"
-              ? "Gerencie escalas, encontre profissionais qualificados e gere documentação automaticamente."
+              ? "Gerencie escalas, encontre profissionais qualificados e simplifique sua operação."
               : "Acesse centenas de vagas em restaurantes e eventos. Candidate-se com um clique."
             }
           </p>

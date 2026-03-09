@@ -1,14 +1,12 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { 
   LayoutDashboard, 
-  Building2, 
   Users, 
   Briefcase, 
-  FileText, 
   CreditCard, 
-  HeadphonesIcon, 
   Settings,
   ChefHat,
   LogOut,
@@ -26,13 +24,10 @@ interface AdminLayoutProps {
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-  { icon: Building2, label: "Estabelecimentos", path: "/admin/estabelecimentos" },
-  { icon: Users, label: "Profissionais", path: "/admin/profissionais" },
-  { icon: Briefcase, label: "Vagas & Escalas", path: "/admin/vagas" },
-  { icon: FileText, label: "Documentos", path: "/admin/documentos" },
-  { icon: CreditCard, label: "Planos & Assinaturas", path: "/admin/planos" },
-  { icon: HeadphonesIcon, label: "Suporte", path: "/admin/suporte" },
-  { icon: Settings, label: "Configurações", path: "/admin/configuracoes" },
+  { icon: Users, label: "Usuários", path: "/admin/usuarios" },
+  { icon: Briefcase, label: "Slots", path: "/admin/slots" },
+  { icon: CreditCard, label: "Planos", path: "/admin/planos" },
+  { icon: Settings, label: "Configurações", path: "/admin/settings" },
 ];
 
 export const AdminLayout = ({ children }: AdminLayoutProps) => {
@@ -40,7 +35,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
 
   const handleLogout = async () => {
     await signOut();
@@ -56,7 +51,6 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
           <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
             <Link to="/admin" className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-lg bg-gradient-hero flex items-center justify-center flex-shrink-0">
@@ -79,7 +73,6 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
             </Button>
           </div>
 
-          {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {sidebarItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -101,16 +94,15 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
             })}
           </nav>
 
-          {/* User */}
           <div className="p-4 border-t border-sidebar-border">
             <div className={`flex items-center gap-3 ${sidebarCollapsed ? "justify-center" : ""}`}>
               <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-medium text-sidebar-foreground">A</span>
+                <span className="text-sm font-medium text-sidebar-foreground">{profile?.nome?.charAt(0) || "A"}</span>
               </div>
               {!sidebarCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-sidebar-foreground truncate">Admin</p>
-                  <p className="text-xs text-sidebar-foreground/60 truncate">admin@temstaff.com</p>
+                  <p className="text-sm font-medium text-sidebar-foreground truncate">{profile?.nome || "Admin"}</p>
+                  <p className="text-xs text-sidebar-foreground/60 truncate">{profile?.email}</p>
                 </div>
               )}
             </div>
@@ -118,9 +110,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? "ml-16" : "ml-64"}`}>
-        {/* Header */}
         <header className="sticky top-0 z-30 h-16 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="h-full px-6 flex items-center justify-between">
             <div className="flex-1 max-w-md">
@@ -134,6 +124,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
             </div>
 
             <div className="flex items-center gap-4">
+              <RoleSwitcher />
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
@@ -146,7 +137,6 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="p-6">
           {children}
         </main>
