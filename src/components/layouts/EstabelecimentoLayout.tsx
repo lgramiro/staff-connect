@@ -12,7 +12,8 @@ import {
   LogOut,
   Bell,
   Menu,
-  Zap
+  Zap,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
