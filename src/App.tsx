@@ -22,6 +22,7 @@ import VagaUrgente from "./pages/app/estabelecimento/VagaUrgente";
 import EstabelecimentoCandidaturas from "./pages/app/estabelecimento/Candidaturas";
 import Hoje from "./pages/app/estabelecimento/Hoje";
 import Avaliar from "./pages/app/estabelecimento/Avaliar";
+import PlanosComparar from "./pages/app/estabelecimento/PlanosComparar";
 
 // Profissional routes
 import ProfissionalDashboard from "./pages/app/profissional/Dashboard";
@@ -32,9 +33,15 @@ import MeuPerfil from "./pages/app/profissional/MeuPerfil";
 // Admin routes
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsuarios from "./pages/admin/Usuarios";
+import AdminProfissionais from "./pages/admin/Profissionais";
+import AdminEstabelecimentos from "./pages/admin/Estabelecimentos";
 import AdminSlots from "./pages/admin/Slots";
+import AdminCandidaturas from "./pages/admin/Candidaturas";
+import AdminAvaliacoes from "./pages/admin/Avaliacoes";
 import AdminSettings from "./pages/admin/Settings";
 import AdminPlanos from "./pages/admin/Planos";
+import AdminAssinaturas from "./pages/admin/Assinaturas";
+import AdminLogs from "./pages/admin/AdminLogs";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +75,7 @@ const App = () => (
             <Route path="/app/estabelecimento/candidaturas" element={<ProtectedRoute allowedRoles={["estabelecimento"]}><EstabelecimentoCandidaturas /></ProtectedRoute>} />
             <Route path="/app/estabelecimento/hoje" element={<ProtectedRoute allowedRoles={["estabelecimento"]}><Hoje /></ProtectedRoute>} />
             <Route path="/app/estabelecimento/avaliar" element={<ProtectedRoute allowedRoles={["estabelecimento"]}><Avaliar /></ProtectedRoute>} />
+            <Route path="/app/estabelecimento/planos" element={<ProtectedRoute allowedRoles={["estabelecimento"]}><PlanosComparar /></ProtectedRoute>} />
 
             {/* Profissional Routes */}
             <Route path="/app/profissional" element={<ProtectedRoute allowedRoles={["profissional"]}><ProfissionalDashboard /></ProtectedRoute>} />
@@ -78,9 +86,15 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/usuarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUsuarios /></ProtectedRoute>} />
+            <Route path="/admin/profissionais" element={<ProtectedRoute allowedRoles={["admin"]}><AdminProfissionais /></ProtectedRoute>} />
+            <Route path="/admin/estabelecimentos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminEstabelecimentos /></ProtectedRoute>} />
             <Route path="/admin/slots" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSlots /></ProtectedRoute>} />
+            <Route path="/admin/candidaturas" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCandidaturas /></ProtectedRoute>} />
+            <Route path="/admin/avaliacoes" element={<ProtectedRoute allowedRoles={["admin"]}><AdminAvaliacoes /></ProtectedRoute>} />
             <Route path="/admin/planos" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPlanos /></ProtectedRoute>} />
+            <Route path="/admin/assinaturas" element={<ProtectedRoute allowedRoles={["admin"]}><AdminAssinaturas /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/logs" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLogs /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

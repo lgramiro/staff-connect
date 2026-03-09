@@ -13,7 +13,8 @@ import {
   Bell,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,9 +26,15 @@ interface AdminLayoutProps {
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
   { icon: Users, label: "Usuários", path: "/admin/usuarios" },
+  { icon: Users, label: "Profissionais", path: "/admin/profissionais" },
+  { icon: Building2, label: "Estabelecimentos", path: "/admin/estabelecimentos" },
   { icon: Briefcase, label: "Slots", path: "/admin/slots" },
+  { icon: Briefcase, label: "Candidaturas", path: "/admin/candidaturas" },
+  { icon: CreditCard, label: "Avaliações", path: "/admin/avaliacoes" },
   { icon: CreditCard, label: "Planos", path: "/admin/planos" },
+  { icon: CreditCard, label: "Assinaturas", path: "/admin/assinaturas" },
   { icon: Settings, label: "Configurações", path: "/admin/settings" },
+  { icon: Settings, label: "Logs", path: "/admin/logs" },
 ];
 
 export const AdminLayout = ({ children }: AdminLayoutProps) => {

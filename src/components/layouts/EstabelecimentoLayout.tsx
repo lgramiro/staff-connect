@@ -12,7 +12,8 @@ import {
   LogOut,
   Bell,
   Menu,
-  Zap
+  Zap,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -25,6 +26,7 @@ const navItems = [
   { icon: Users, label: "Candidaturas", path: "/app/estabelecimento/candidaturas" },
   { icon: Clock, label: "Hoje", path: "/app/estabelecimento/hoje" },
   { icon: Star, label: "Avaliar", path: "/app/estabelecimento/avaliar" },
+  { icon: CreditCard, label: "Planos", path: "/app/estabelecimento/planos" },
 ];
 
 export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) => {
