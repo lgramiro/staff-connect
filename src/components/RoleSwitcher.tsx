@@ -1,11 +1,12 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Building2, User, Shield, ArrowLeftRight } from "lucide-react";
+import { Building2, User, Shield, ArrowLeftRight, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -29,14 +30,13 @@ export const RoleSwitcher = () => {
   };
 
   const currentConfig = activeRole ? roleLabels[activeRole] : null;
-  const CurrentIcon = currentConfig?.icon || User;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2">
           <ArrowLeftRight className="w-4 h-4" />
-          <span className="hidden sm:inline">{currentConfig?.label || "Trocar"}</span>
+          <span className="hidden sm:inline">{currentConfig?.label || "Trocar perfil"}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -55,6 +55,11 @@ export const RoleSwitcher = () => {
             </DropdownMenuItem>
           );
         })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/meus-perfis")}>
+          <UserCog className="w-4 h-4 mr-2" />
+          Meus Perfis
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
