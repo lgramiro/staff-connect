@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { AdminViewAs } from "@/components/AdminViewAs";
 import { 
   LayoutDashboard, 
   Users, 
@@ -131,6 +132,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
             </div>
 
             <div className="flex items-center gap-4">
+              <AdminViewAs />
               <RoleSwitcher />
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
