@@ -60,6 +60,9 @@ const App = () => (
             <Route path="/escolher-perfil" element={
               <ProtectedRoute><RolePicker /></ProtectedRoute>
             } />
+            <Route path="/meus-perfis" element={
+              <ProtectedRoute><MeusPerfis /></ProtectedRoute>
+            } />
 
             {/* Onboarding */}
             <Route path="/onboarding/profissional" element={

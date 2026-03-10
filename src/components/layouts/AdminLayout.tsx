@@ -132,6 +132,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
             </div>
 
             <div className="flex items-center gap-4">
+              <AdminViewAs />
               <RoleSwitcher />
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
