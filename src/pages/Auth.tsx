@@ -63,7 +63,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [redirectError, setRedirectError] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<any>(null);
 
   useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
 
