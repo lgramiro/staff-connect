@@ -25,6 +25,8 @@ const MeuPerfil = () => {
   const [form, setForm] = useState<any>({});
   const fotoRef = useRef<HTMLInputElement>(null);
   const cvRef = useRef<HTMLInputElement>(null);
+  const { url: fotoUrl } = useSupabaseUrl(form.foto_url || prof?.foto_url, "fotos");
+  const { url: cvUrl } = useSupabaseUrl(form.curriculo_url || prof?.curriculo_url, "curriculos");
 
   const loadProfile = () => {
     if (!user) return;
@@ -40,26 +42,35 @@ const MeuPerfil = () => {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const path = `${user.id}/foto.${file.name.split(".").pop()}`;
+    
+    // Using a more secure path with a timestamp to prevent simple guessing
+    const timestamp = new Date().getTime();
+    const path = `${user.id}/foto_${timestamp}.${file.name.split(".").pop()}`;
+    
     const { error } = await supabase.storage.from("fotos").upload(path, file, { upsert: true });
     if (error) { toast({ title: "Erro no upload", description: error.message, variant: "destructive" }); return; }
-    const { data: { publicUrl } } = supabase.storage.from("fotos").getPublicUrl(path);
-    await supabase.from("profissionais").update({ foto_url: publicUrl }).eq("user_id", user.id);
-    setForm((prev: any) => ({ ...prev, foto_url: publicUrl }));
-    setProf((prev: any) => ({ ...prev, foto_url: publicUrl }));
+    
+    // Store ONLY the path in the database for private buckets
+    await supabase.from("profissionais").update({ foto_url: path }).eq("user_id", user.id);
+    setForm((prev: any) => ({ ...prev, foto_url: path }));
+    setProf((prev: any) => ({ ...prev, foto_url: path }));
     toast({ title: "Foto atualizada!" });
   };
 
   const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const path = `${user.id}/curriculo.${file.name.split(".").pop()}`;
+    
+    const timestamp = new Date().getTime();
+    const path = `${user.id}/curriculo_${timestamp}.${file.name.split(".").pop()}`;
+    
     const { error } = await supabase.storage.from("curriculos").upload(path, file, { upsert: true });
     if (error) { toast({ title: "Erro no upload", description: error.message, variant: "destructive" }); return; }
-    const { data: { publicUrl } } = supabase.storage.from("curriculos").getPublicUrl(path);
-    await supabase.from("profissionais").update({ curriculo_url: publicUrl }).eq("user_id", user.id);
-    setForm((prev: any) => ({ ...prev, curriculo_url: publicUrl }));
-    setProf((prev: any) => ({ ...prev, curriculo_url: publicUrl }));
+    
+    // Store ONLY the path in the database
+    await supabase.from("profissionais").update({ curriculo_url: path }).eq("user_id", user.id);
+    setForm((prev: any) => ({ ...prev, curriculo_url: path }));
+    setProf((prev: any) => ({ ...prev, curriculo_url: path }));
     toast({ title: "Currículo atualizado!" });
   };
 
