@@ -224,7 +224,7 @@ const MeuPerfil = () => {
                 {prof.linkedin && <Button variant="ghost" size="icon" onClick={() => window.open(prof.linkedin, "_blank")}><Linkedin className="w-5 h-5" /></Button>}
                 {prof.portfolio && <Button variant="ghost" size="icon" onClick={() => window.open(prof.portfolio, "_blank")}><Globe className="w-5 h-5" /></Button>}
                 {prof.youtube && <Button variant="ghost" size="icon" onClick={() => window.open(prof.youtube, "_blank")}><Youtube className="w-5 h-5" /></Button>}
-                {prof.curriculo_url && <Button variant="outline" size="sm" onClick={() => window.open(prof.curriculo_url, "_blank")}><FileText className="w-4 h-4 mr-1" /> Ver Currículo</Button>}
+                {cvUrl && <Button variant="outline" size="sm" onClick={() => window.open(cvUrl, "_blank")}><FileText className="w-4 h-4 mr-1" /> Ver Currículo</Button>}
               </div>
               <Button variant="outline" className="mt-2" onClick={() => cvRef.current?.click()}><Upload className="w-4 h-4 mr-1" /> Enviar Currículo</Button>
               <input ref={cvRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleCvUpload} />
