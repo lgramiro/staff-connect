@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil } from "lucide-react";
+import { useSupabaseUrl } from "@/hooks/useSupabaseUrl";
+import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil, Download } from "lucide-react";
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
