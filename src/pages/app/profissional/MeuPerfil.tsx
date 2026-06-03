@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil } from "lucide-react";
+import { useSupabaseUrl } from "@/hooks/useSupabaseUrl";
+import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil, Download } from "lucide-react";
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
@@ -24,6 +25,8 @@ const MeuPerfil = () => {
   const [form, setForm] = useState<any>({});
   const fotoRef = useRef<HTMLInputElement>(null);
   const cvRef = useRef<HTMLInputElement>(null);
+  const { url: fotoUrl } = useSupabaseUrl(form.foto_url || prof?.foto_url, "fotos");
+  const { url: cvUrl } = useSupabaseUrl(form.curriculo_url || prof?.curriculo_url, "curriculos");
 
   const loadProfile = () => {
     if (!user) return;
@@ -39,26 +42,35 @@ const MeuPerfil = () => {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const path = `${user.id}/foto.${file.name.split(".").pop()}`;
+    
+    // Using a more secure path with a timestamp to prevent simple guessing
+    const timestamp = new Date().getTime();
+    const path = `${user.id}/foto_${timestamp}.${file.name.split(".").pop()}`;
+    
     const { error } = await supabase.storage.from("fotos").upload(path, file, { upsert: true });
     if (error) { toast({ title: "Erro no upload", description: error.message, variant: "destructive" }); return; }
-    const { data: { publicUrl } } = supabase.storage.from("fotos").getPublicUrl(path);
-    await supabase.from("profissionais").update({ foto_url: publicUrl }).eq("user_id", user.id);
-    setForm((prev: any) => ({ ...prev, foto_url: publicUrl }));
-    setProf((prev: any) => ({ ...prev, foto_url: publicUrl }));
+    
+    // Store ONLY the path in the database for private buckets
+    await supabase.from("profissionais").update({ foto_url: path }).eq("user_id", user.id);
+    setForm((prev: any) => ({ ...prev, foto_url: path }));
+    setProf((prev: any) => ({ ...prev, foto_url: path }));
     toast({ title: "Foto atualizada!" });
   };
 
   const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const path = `${user.id}/curriculo.${file.name.split(".").pop()}`;
+    
+    const timestamp = new Date().getTime();
+    const path = `${user.id}/curriculo_${timestamp}.${file.name.split(".").pop()}`;
+    
     const { error } = await supabase.storage.from("curriculos").upload(path, file, { upsert: true });
     if (error) { toast({ title: "Erro no upload", description: error.message, variant: "destructive" }); return; }
-    const { data: { publicUrl } } = supabase.storage.from("curriculos").getPublicUrl(path);
-    await supabase.from("profissionais").update({ curriculo_url: publicUrl }).eq("user_id", user.id);
-    setForm((prev: any) => ({ ...prev, curriculo_url: publicUrl }));
-    setProf((prev: any) => ({ ...prev, curriculo_url: publicUrl }));
+    
+    // Store ONLY the path in the database
+    await supabase.from("profissionais").update({ curriculo_url: path }).eq("user_id", user.id);
+    setForm((prev: any) => ({ ...prev, curriculo_url: path }));
+    setProf((prev: any) => ({ ...prev, curriculo_url: path }));
     toast({ title: "Currículo atualizado!" });
   };
 
@@ -124,8 +136,8 @@ const MeuPerfil = () => {
           {/* Photo */}
           <div className="flex items-center gap-4 mb-6">
             <div className="relative">
-              {(form.foto_url || prof.foto_url) ? (
-                <img src={form.foto_url || prof.foto_url} alt="Foto" className="w-20 h-20 rounded-full object-cover" />
+              {fotoUrl ? (
+                <img src={fotoUrl} alt="Foto" className="w-20 h-20 rounded-full object-cover" />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary">
                   {prof.nome?.charAt(0) || "P"}
@@ -212,7 +224,7 @@ const MeuPerfil = () => {
                 {prof.linkedin && <Button variant="ghost" size="icon" onClick={() => window.open(prof.linkedin, "_blank")}><Linkedin className="w-5 h-5" /></Button>}
                 {prof.portfolio && <Button variant="ghost" size="icon" onClick={() => window.open(prof.portfolio, "_blank")}><Globe className="w-5 h-5" /></Button>}
                 {prof.youtube && <Button variant="ghost" size="icon" onClick={() => window.open(prof.youtube, "_blank")}><Youtube className="w-5 h-5" /></Button>}
-                {prof.curriculo_url && <Button variant="outline" size="sm" onClick={() => window.open(prof.curriculo_url, "_blank")}><FileText className="w-4 h-4 mr-1" /> Ver Currículo</Button>}
+                {cvUrl && <Button variant="outline" size="sm" onClick={() => window.open(cvUrl, "_blank")}><FileText className="w-4 h-4 mr-1" /> Ver Currículo</Button>}
               </div>
               <Button variant="outline" className="mt-2" onClick={() => cvRef.current?.click()}><Upload className="w-4 h-4 mr-1" /> Enviar Currículo</Button>
               <input ref={cvRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleCvUpload} />
