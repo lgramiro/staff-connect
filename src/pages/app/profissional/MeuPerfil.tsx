@@ -136,8 +136,8 @@ const MeuPerfil = () => {
           {/* Photo */}
           <div className="flex items-center gap-4 mb-6">
             <div className="relative">
-              {(form.foto_url || prof.foto_url) ? (
-                <img src={form.foto_url || prof.foto_url} alt="Foto" className="w-20 h-20 rounded-full object-cover" />
+              {fotoUrl ? (
+                <img src={fotoUrl} alt="Foto" className="w-20 h-20 rounded-full object-cover" />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary">
                   {prof.nome?.charAt(0) || "P"}
