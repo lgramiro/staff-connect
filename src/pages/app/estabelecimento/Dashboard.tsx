@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   CalendarDays, 
   Users, 
   CheckCircle2, 
   Clock, 
-  AlertCircle,
   Plus,
   ChevronLeft,
   ChevronRight,
@@ -16,75 +14,60 @@ import {
   X
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
+import { useSlotsByEstabelecimento } from "@/hooks/queries/useSlots";
 
 const EstabelecimentoDashboard = () => {
   const { user, profile } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [stats, setStats] = useState({ abertos: 0, confirmados: 0, pendentes: 0, total: 0 });
-  const [slotsByDay, setSlotsByDay] = useState<Record<number, { count: number; status: string }>>({});
-  const [selectedDaySlots, setSelectedDaySlots] = useState<any[] | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [estabName, setEstabName] = useState("");
-  const [loading, setLoading] = useState(true);
+
+  const { data: estab } = useEstabelecimentoQuery(user?.id);
+  
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+  const startDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-01`;
+  const endDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${daysInMonth}`;
+
+  const { data: slots = [], isLoading: loading } = useSlotsByEstabelecimento(estab?.id, { startDate, endDate });
+
+  const stats = useMemo(() => {
+    const abertos = slots.filter(s => s.status === "aberto").length;
+    const confirmados = slots.filter(s => ["confirmado", "concluido"].includes(s.status)).length;
+    const pendentes = slots.filter(s => s.status === "reservado").length;
+    return { abertos, confirmados, pendentes, total: slots.length };
+  }, [slots]);
+
+  const slotsByDay = useMemo(() => {
+    const byDay: Record<number, { count: number; status: string }> = {};
+    slots.forEach(s => {
+      const day = parseInt(s.data.split("-")[2]);
+      if (!byDay[day]) byDay[day] = { count: 0, status: s.status };
+      byDay[day].count++;
+      if (s.status === "confirmado" || s.status === "concluido") byDay[day].status = "filled";
+      else if (s.status === "reservado" && byDay[day].status !== "filled") byDay[day].status = "pending";
+      else if (s.status === "aberto" && byDay[day].status !== "filled" && byDay[day].status !== "pending") byDay[day].status = "open";
+    });
+    return byDay;
+  }, [slots]);
+
+  const selectedDaySlots = useMemo(() => {
+    if (selectedDay === null) return null;
+    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`;
+    return slots.filter(s => s.data === dateStr);
+  }, [selectedDay, slots, currentMonth]);
 
   const monthNames = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
 
-  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  const firstDay = getFirstDayOfMonth(currentMonth);
 
-  useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      const { data: estab } = await supabase.from("estabelecimentos").select("id, nome").eq("user_id", user.id).single();
-      if (!estab) { setLoading(false); return; }
-      setEstabName(estab.nome);
-
-      const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth();
-      const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
-      const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${getDaysInMonth(currentMonth)}`;
-
-      const { data: slots } = await supabase.from("slots")
-        .select("*")
-        .eq("estabelecimento_id", estab.id)
-        .gte("data", startDate)
-        .lte("data", endDate);
-
-      if (slots) {
-        const abertos = slots.filter(s => s.status === "aberto").length;
-        const confirmados = slots.filter(s => ["confirmado", "concluido"].includes(s.status)).length;
-        const pendentes = slots.filter(s => s.status === "reservado").length;
-        setStats({ abertos, confirmados, pendentes, total: slots.length });
-
-        const byDay: Record<number, { count: number; status: string }> = {};
-        slots.forEach(s => {
-          const day = parseInt(s.data.split("-")[2]);
-          if (!byDay[day]) byDay[day] = { count: 0, status: s.status };
-          byDay[day].count++;
-          // Priority: confirmado > reservado > aberto
-          if (s.status === "confirmado" || s.status === "concluido") byDay[day].status = "filled";
-          else if (s.status === "reservado" && byDay[day].status !== "filled") byDay[day].status = "pending";
-          else if (s.status === "aberto" && byDay[day].status !== "filled" && byDay[day].status !== "pending") byDay[day].status = "open";
-        });
-        setSlotsByDay(byDay);
-      }
-      setLoading(false);
-    };
-    load();
-  }, [user, currentMonth]);
-
-  const handleDayClick = async (day: number) => {
-    if (!user) return;
+  const handleDayClick = (day: number) => {
     setSelectedDay(day);
-    const { data: estab } = await supabase.from("estabelecimentos").select("id").eq("user_id", user.id).single();
-    if (!estab) return;
-    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const { data } = await supabase.from("slots").select("*").eq("estabelecimento_id", estab.id).eq("data", dateStr);
-    setSelectedDaySlots(data || []);
   };
+
 
   const daysInMonth = getDaysInMonth(currentMonth);
   const firstDay = getFirstDayOfMonth(currentMonth);
@@ -102,7 +85,7 @@ const EstabelecimentoDashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Olá, {estabName || profile?.nome || "Estabelecimento"}! 👋
+              Olá, {estab?.nome || profile?.nome || "Estabelecimento"}! 👋
             </h1>
             <p className="text-muted-foreground">Gerencie sua escala mensal e encontre profissionais.</p>
           </div>
