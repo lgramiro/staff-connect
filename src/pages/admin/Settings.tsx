@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const AdminSettings = () => {
   const { toast } = useToast();
@@ -31,7 +32,7 @@ const AdminSettings = () => {
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold">Configurações</h1>
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : (
           <div className="space-y-4">
             {settings.map(s => (

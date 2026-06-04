@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const PlanosComparar = () => {
   const { user } = useAuth();
@@ -99,7 +100,7 @@ const PlanosComparar = () => {
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <LoadingSpinner />
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">

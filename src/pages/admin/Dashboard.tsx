@@ -8,9 +8,12 @@ import {
   Briefcase, 
   TrendingUp,
   AlertTriangle,
-  ArrowUpRight
+  ArrowUpRight,
+  Activity
 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { Link } from "react-router-dom";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const AdminDashboard = () => {
   const [counts, setCounts] = useState({ estabelecimentos: 0, profissionais: 0, slots: 0, candidaturas: 0 });
@@ -56,7 +59,7 @@ const AdminDashboard = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -95,7 +98,7 @@ const AdminDashboard = () => {
               <div className="bg-card rounded-xl p-6 border border-border">
                 <h2 className="font-display text-lg font-semibold text-foreground mb-4">Atividade Recente</h2>
                 {recentLogs.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Nenhuma atividade registrada.</p>
+                  <EmptyState icon={Activity} title="Nenhuma atividade registrada" />
                 ) : (
                   <div className="space-y-3">
                     {recentLogs.map((log) => (

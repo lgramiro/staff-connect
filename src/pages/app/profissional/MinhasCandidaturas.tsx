@@ -10,9 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { CheckCircle2, XCircle, Clock, Calendar, MapPin, DollarSign, Star } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Calendar, MapPin, DollarSign, Star, Inbox } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const MinhasCandidaturas = () => {
   const { user } = useAuth();
@@ -153,10 +155,8 @@ const MinhasCandidaturas = () => {
     );
   };
 
-  const EmptyState = ({ message }: { message: string }) => (
-    <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed border-border">
-      <p className="text-muted-foreground">{message}</p>
-    </div>
+  const EmptyMsg = ({ message }: { message: string }) => (
+    <EmptyState icon={Inbox} title={message} />
   );
 
   return (
@@ -168,9 +168,7 @@ const MinhasCandidaturas = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          </div>
+          <LoadingSpinner />
         ) : (
           <Tabs defaultValue="analise" className="w-full">
             <TabsList className="grid grid-cols-4 w-full h-auto p-1 mb-6">
@@ -204,7 +202,7 @@ const MinhasCandidaturas = () => {
               {groups.analise.length > 0 ? (
                 groups.analise.map(c => <CandidaturaCard key={c.id} c={c} />)
               ) : (
-                <EmptyState message="Nenhuma candidatura em análise no momento." />
+                <EmptyMsg message="Nenhuma candidatura em análise no momento." />
               )}
             </TabsContent>
 
@@ -212,7 +210,7 @@ const MinhasCandidaturas = () => {
               {groups.aprovadas.length > 0 ? (
                 groups.aprovadas.map(c => <CandidaturaCard key={c.id} c={c} />)
               ) : (
-                <EmptyState message="Você ainda não tem candidaturas aprovadas." />
+                <EmptyMsg message="Você ainda não tem candidaturas aprovadas." />
               )}
             </TabsContent>
 
@@ -220,7 +218,7 @@ const MinhasCandidaturas = () => {
               {groups.concluidas.length > 0 ? (
                 groups.concluidas.map(c => <CandidaturaCard key={c.id} c={c} />)
               ) : (
-                <EmptyState message="Nenhum trabalho concluído encontrado." />
+                <EmptyMsg message="Nenhum trabalho concluído encontrado." />
               )}
             </TabsContent>
 
@@ -228,7 +226,7 @@ const MinhasCandidaturas = () => {
               {groups.recusadas.length > 0 ? (
                 groups.recusadas.map(c => <CandidaturaCard key={c.id} c={c} />)
               ) : (
-                <EmptyState message="Nenhuma candidatura recusada." />
+                <EmptyMsg message="Nenhuma candidatura recusada." />
               )}
             </TabsContent>
           </Tabs>

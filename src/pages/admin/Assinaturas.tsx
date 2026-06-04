@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { EmptyState } from "@/components/EmptyState";
+import { CreditCard } from "lucide-react";
 
 const AdminAssinaturas = () => {
   const { user } = useAuth();
@@ -36,9 +39,9 @@ const AdminAssinaturas = () => {
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold">Assinaturas</h1>
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : items.length === 0 ? (
-          <p className="text-muted-foreground">Nenhuma assinatura encontrada.</p>
+          <EmptyState icon={CreditCard} title="Nenhuma assinatura encontrada" description="Ainda não há assinaturas ativas na plataforma." />
         ) : (
           <div className="bg-card rounded-xl border border-border overflow-x-auto">
             <table className="w-full">

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/EmptyState";
+import { CreditCard } from "lucide-react";
 
 const AdminPlanos = () => {
   const { toast } = useToast();
@@ -48,7 +50,7 @@ const AdminPlanos = () => {
 
         <h2 className="font-display text-lg font-semibold mt-8">Assinaturas</h2>
         {assinaturas.length === 0 ? (
-          <p className="text-muted-foreground">Nenhuma assinatura.</p>
+          <EmptyState icon={CreditCard} title="Nenhuma assinatura" />
         ) : (
           <div className="bg-card rounded-xl border border-border overflow-x-auto">
             <table className="w-full">

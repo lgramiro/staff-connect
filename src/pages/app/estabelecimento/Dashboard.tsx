@@ -14,8 +14,10 @@ import {
   X,
   TrendingUp,
   Star,
-  AlertTriangle
+  AlertTriangle,
+  Inbox
 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { Link } from "react-router-dom";
 import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
 import { useSlotsByEstabelecimento } from "@/hooks/queries/useSlots";
@@ -25,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const EstabelecimentoDashboard = () => {
   const { user, profile } = useAuth();
@@ -165,7 +168,7 @@ const EstabelecimentoDashboard = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : (
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -248,7 +251,7 @@ const EstabelecimentoDashboard = () => {
                   </Button>
                 </div>
                 {selectedDaySlots.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Nenhum slot neste dia.</p>
+                  <EmptyState icon={Inbox} title="Nenhum slot neste dia" />
                 ) : (
                   <div className="space-y-2">
                     {selectedDaySlots.map(s => (
@@ -301,7 +304,7 @@ const EstabelecimentoDashboard = () => {
                   <h3 className="font-display font-semibold">Profissionais favoritos</h3>
                 </div>
                 {topProfissionais.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-4 text-center">Nenhum profissional recorrente ainda.</p>
+                  <EmptyState icon={Star} title="Nenhum profissional recorrente ainda" />
                 ) : (
                   <div className="space-y-4">
                     {topProfissionais.map((prof, i) => (
