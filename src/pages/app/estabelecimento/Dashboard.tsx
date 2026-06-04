@@ -14,8 +14,10 @@ import {
   X,
   TrendingUp,
   Star,
-  AlertTriangle
+  AlertTriangle,
+  Inbox
 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { Link } from "react-router-dom";
 import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
 import { useSlotsByEstabelecimento } from "@/hooks/queries/useSlots";
@@ -249,7 +251,7 @@ const EstabelecimentoDashboard = () => {
                   </Button>
                 </div>
                 {selectedDaySlots.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Nenhum slot neste dia.</p>
+                  <EmptyState icon={Inbox} title="Nenhum slot neste dia" />
                 ) : (
                   <div className="space-y-2">
                     {selectedDaySlots.map(s => (
@@ -302,7 +304,7 @@ const EstabelecimentoDashboard = () => {
                   <h3 className="font-display font-semibold">Profissionais favoritos</h3>
                 </div>
                 {topProfissionais.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-4 text-center">Nenhum profissional recorrente ainda.</p>
+                  <EmptyState icon={Star} title="Nenhum profissional recorrente ainda" />
                 ) : (
                   <div className="space-y-4">
                     {topProfissionais.map((prof, i) => (

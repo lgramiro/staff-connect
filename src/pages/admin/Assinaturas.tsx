@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { EmptyState } from "@/components/EmptyState";
+import { CreditCard } from "lucide-react";
 
 const AdminAssinaturas = () => {
   const { user } = useAuth();
@@ -39,7 +41,7 @@ const AdminAssinaturas = () => {
         {loading ? (
           <LoadingSpinner />
         ) : items.length === 0 ? (
-          <p className="text-muted-foreground">Nenhuma assinatura encontrada.</p>
+          <EmptyState icon={CreditCard} title="Nenhuma assinatura encontrada" description="Ainda não há assinaturas ativas na plataforma." />
         ) : (
           <div className="bg-card rounded-xl border border-border overflow-x-auto">
             <table className="w-full">

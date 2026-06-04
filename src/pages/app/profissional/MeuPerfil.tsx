@@ -10,7 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseUrl } from "@/hooks/useSupabaseUrl";
-import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil } from "lucide-react";
+import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil, UserX } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { useProfissionalQuery, useProfissionalMutation } from "@/hooks/queries/useProfissional";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
@@ -110,7 +111,7 @@ const MeuPerfil = () => {
 
 
   if (loading) return <ProfissionalLayout><LoadingSpinner /></ProfissionalLayout>;
-  if (!prof) return <ProfissionalLayout><div className="text-center py-12 text-muted-foreground">Perfil não encontrado. Complete o onboarding.</div></ProfissionalLayout>;
+  if (!prof) return <ProfissionalLayout><EmptyState icon={UserX} title="Perfil não encontrado" description="Complete o onboarding para começar a usar o Tem Staff." /></ProfissionalLayout>;
 
   return (
     <ProfissionalLayout>

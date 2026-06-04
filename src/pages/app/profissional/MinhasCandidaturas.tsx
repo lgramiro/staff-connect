@@ -155,10 +155,8 @@ const MinhasCandidaturas = () => {
     );
   };
 
-  const EmptyState = ({ message }: { message: string }) => (
-    <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed border-border">
-      <p className="text-muted-foreground">{message}</p>
-    </div>
+  const EmptyMsg = ({ message }: { message: string }) => (
+    <EmptyState icon={Inbox} title={message} />
   );
 
   return (
@@ -170,9 +168,7 @@ const MinhasCandidaturas = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <LoadingSpinner />
-          </div>
+          <LoadingSpinner />
         ) : (
           <Tabs defaultValue="analise" className="w-full">
             <TabsList className="grid grid-cols-4 w-full h-auto p-1 mb-6">

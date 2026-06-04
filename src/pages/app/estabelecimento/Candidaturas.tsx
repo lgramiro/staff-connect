@@ -1,7 +1,8 @@
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, User, Star, Instagram, Linkedin, Globe, MapPin, Briefcase } from "lucide-react";
+import { CheckCircle2, XCircle, User, Star, Instagram, Linkedin, Globe, MapPin, Briefcase, Inbox } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { criarNotificacao, getProfissionalUserId } from "@/lib/notificacoes";
 import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
 import { useCandidaturasByEstabelecimento, useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
@@ -168,13 +169,9 @@ const Candidaturas = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <LoadingSpinner />
-          </div>
+          <LoadingSpinner />
         ) : candidaturas.length === 0 ? (
-          <div className="text-center py-12 bg-card rounded-xl border border-dashed border-border text-muted-foreground">
-            Nenhuma candidatura recebida ainda.
-          </div>
+          <EmptyState icon={Inbox} title="Nenhuma candidatura recebida ainda" description="As candidaturas aparecerão aqui assim que profissionais se inscreverem nos seus slots." />
         ) : (
           <Tabs defaultValue="pendentes" className="w-full">
             <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 mb-6">
@@ -195,7 +192,7 @@ const Candidaturas = () => {
             {tabs.map(t => (
               <TabsContent key={t.id} value={t.id} className="space-y-3 mt-0">
                 {candidaturas.filter(c => t.statuses.includes(c.status)).length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">Nenhuma candidatura nesta categoria.</div>
+                  <EmptyState icon={Inbox} title="Nenhuma candidatura nesta categoria" />
                 ) : (
                   candidaturas
                     .filter(c => t.statuses.includes(c.status))

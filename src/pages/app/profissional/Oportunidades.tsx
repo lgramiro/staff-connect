@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Clock, Calendar, DollarSign, Zap, AlertTriangle } from "lucide-react";
+import { MapPin, Clock, Calendar, DollarSign, Zap, AlertTriangle, Search } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { useSlotsAbertos } from "@/hooks/queries/useSlots";
 import { useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
 import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
@@ -92,7 +93,7 @@ const Oportunidades = () => {
         {loading ? (
           <LoadingSpinner />
         ) : slots.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">Nenhuma vaga encontrada.</div>
+          <EmptyState icon={Search} title="Nenhuma vaga encontrada" description="Tente ajustar os filtros ou volte mais tarde para conferir novas oportunidades." />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {slots.map(slot => (
