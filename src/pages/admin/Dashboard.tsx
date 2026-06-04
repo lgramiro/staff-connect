@@ -14,8 +14,10 @@ import {
 import { EmptyState } from "@/components/EmptyState";
 import { Link } from "react-router-dom";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const AdminDashboard = () => {
+  usePageTitle("Admin | Tem Staff");
   const [counts, setCounts] = useState({ estabelecimentos: 0, profissionais: 0, slots: 0, candidaturas: 0 });
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

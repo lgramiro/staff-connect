@@ -9,11 +9,13 @@ import { useProfissionalQuery } from "@/hooks/queries/useProfissional";
 import { useUpdateSlotStatus } from "@/hooks/queries/useSlots";
 import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 
 
 
 const ProfissionalDashboard = () => {
+  usePageTitle("Início | Tem Staff");
   const { user, profile } = useAuth();
   const { data: prof } = useProfissionalQuery(user?.id);
   const { data: cands = [], isLoading: loading } = useCandidaturasByProfissional(prof?.id);

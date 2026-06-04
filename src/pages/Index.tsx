@@ -14,8 +14,10 @@ import {
   MapPin
 } from "lucide-react";
 import heroImage from "@/assets/hero-image.jpg";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Index = () => {
+  usePageTitle("Tem Staff — Conecte seu restaurante aos melhores profissionais");
   return (
     <div className="min-h-screen bg-gradient-warm">
       {/* Header */}

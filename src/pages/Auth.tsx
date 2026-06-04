@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type UserRole = "estabelecimento" | "profissional";
 type AuthMode = "login" | "signup";
@@ -48,6 +49,7 @@ const BrandingPanel = ({ mode, role }: { mode: AuthMode; role: UserRole }) => (
 
 // ── Main Component ─────────────────────────────────────────────
 const Auth = () => {
+  usePageTitle("Entrar | Tem Staff");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
