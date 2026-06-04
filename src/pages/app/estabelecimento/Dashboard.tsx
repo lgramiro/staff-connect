@@ -68,16 +68,13 @@ const EstabelecimentoDashboard = () => {
     setSelectedDay(day);
   };
 
-
-  const daysInMonth = getDaysInMonth(currentMonth);
-  const firstDay = getFirstDayOfMonth(currentMonth);
-
   const statCards = [
     { label: "Total", value: stats.total, icon: CalendarDays, color: "bg-primary/10 text-primary" },
     { label: "Confirmados", value: stats.confirmados, icon: CheckCircle2, color: "bg-success/10 text-success" },
     { label: "Pendentes", value: stats.pendentes, icon: Clock, color: "bg-warning/10 text-warning" },
     { label: "Abertos", value: stats.abertos, icon: Users, color: "bg-info/10 text-info" },
   ];
+
 
   return (
     <EstabelecimentoLayout>
@@ -178,7 +175,7 @@ const EstabelecimentoDashboard = () => {
                   <h2 className="font-display text-lg font-semibold">
                     Slots do dia {selectedDay}/{currentMonth.getMonth() + 1}
                   </h2>
-                  <Button variant="ghost" size="icon" onClick={() => { setSelectedDaySlots(null); setSelectedDay(null); }}>
+                  <Button variant="ghost" size="icon" onClick={() => { setSelectedDay(null); }}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
