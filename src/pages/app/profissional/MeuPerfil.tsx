@@ -10,7 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseUrl } from "@/hooks/useSupabaseUrl";
-import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil, Download } from "lucide-react";
+import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil } from "lucide-react";
+import { useProfissionalQuery, useProfissionalMutation } from "@/hooks/queries/useProfissional";
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
@@ -18,26 +19,21 @@ const MeuPerfil = () => {
   const { user } = useAuth();
   const { getFuncoes } = useSettings();
   const { toast } = useToast();
-  const [prof, setProf] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({});
   const fotoRef = useRef<HTMLInputElement>(null);
   const cvRef = useRef<HTMLInputElement>(null);
+
+  const { data: prof, isLoading: loading } = useProfissionalQuery(user?.id);
+  const updateProfissional = useProfissionalMutation(user?.id);
+
   const { url: fotoUrl } = useSupabaseUrl(form.foto_url || prof?.foto_url, "fotos");
   const { url: cvUrl } = useSupabaseUrl(form.curriculo_url || prof?.curriculo_url, "curriculos");
 
-  const loadProfile = () => {
-    if (!user) return;
-    supabase.from("profissionais").select("*").eq("user_id", user.id).single().then(({ data }) => {
-      setProf(data);
-      if (data) setForm({ ...data });
-      setLoading(false);
-    });
-  };
+  useEffect(() => {
+    if (prof) setForm({ ...prof });
+  }, [prof]);
 
-  useEffect(() => { loadProfile(); }, [user]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,11 +47,10 @@ const MeuPerfil = () => {
     if (error) { toast({ title: "Erro no upload", description: error.message, variant: "destructive" }); return; }
     
     // Store ONLY the path in the database for private buckets
-    await supabase.from("profissionais").update({ foto_url: path }).eq("user_id", user.id);
+    updateProfissional.mutate({ foto_url: path });
     setForm((prev: any) => ({ ...prev, foto_url: path }));
-    setProf((prev: any) => ({ ...prev, foto_url: path }));
-    toast({ title: "Foto atualizada!" });
   };
+
 
   const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -68,11 +63,10 @@ const MeuPerfil = () => {
     if (error) { toast({ title: "Erro no upload", description: error.message, variant: "destructive" }); return; }
     
     // Store ONLY the path in the database
-    await supabase.from("profissionais").update({ curriculo_url: path }).eq("user_id", user.id);
+    updateProfissional.mutate({ curriculo_url: path });
     setForm((prev: any) => ({ ...prev, curriculo_url: path }));
-    setProf((prev: any) => ({ ...prev, curriculo_url: path }));
-    toast({ title: "Currículo atualizado!" });
   };
+
 
   const toggleFuncao = (f: string) => {
     const current = form.funcoes || [];
@@ -91,9 +85,7 @@ const MeuPerfil = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
-    setSaving(true);
-    const { error } = await supabase.from("profissionais").update({
+    updateProfissional.mutate({
       nome: form.nome,
       whatsapp: form.whatsapp,
       cidade: form.cidade,
@@ -108,16 +100,13 @@ const MeuPerfil = () => {
       linkedin: form.linkedin || null,
       portfolio: form.portfolio || null,
       youtube: form.youtube || null,
-    }).eq("user_id", user.id);
-    setSaving(false);
-    if (error) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Perfil atualizado!" });
-      setEditing(false);
-      loadProfile();
-    }
+    }, {
+      onSuccess: () => {
+        setEditing(false);
+      }
+    });
   };
+
 
   if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div></ProfissionalLayout>;
   if (!prof) return <ProfissionalLayout><div className="text-center py-12 text-muted-foreground">Perfil não encontrado. Complete o onboarding.</div></ProfissionalLayout>;
@@ -205,7 +194,7 @@ const MeuPerfil = () => {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button variant="hero" onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar Perfil"}</Button>
+                <Button variant="hero" onClick={handleSave} disabled={updateProfissional.isPending}>{updateProfissional.isPending ? "Salvando..." : "Salvar Perfil"}</Button>
                 <Button variant="outline" onClick={() => cvRef.current?.click()}><Upload className="w-4 h-4 mr-1" /> Enviar Currículo</Button>
                 <input ref={cvRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleCvUpload} />
               </div>
