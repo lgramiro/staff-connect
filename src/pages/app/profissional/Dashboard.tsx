@@ -220,30 +220,15 @@ const ProfissionalDashboard = () => {
 
 
 
-        {/* Confirmações pendentes */}
-        {pendentes.length > 0 && (
-          <div className="bg-card rounded-xl p-6 border border-warning/30">
-            <h2 className="font-display text-lg font-semibold mb-4">⚠️ Confirmações Pendentes</h2>
-            <div className="space-y-3">
-              {pendentes.map(c => (
-                <div key={c.id} className="p-4 rounded-lg bg-muted/30 border border-border">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold">{c.slots?.funcao}</p>
-                      <p className="text-sm text-muted-foreground">{c.slots?.estabelecimentos?.nome}</p>
-                      <p className="text-sm text-muted-foreground">{c.slots?.data} • {c.slots?.horario_inicio}-{c.slots?.horario_fim}</p>
-                    </div>
-                    <p className="font-semibold">R$ {Number(c.slots?.valor || 0).toFixed(2)}</p>
-                  </div>
-                  <div className="flex gap-2 mt-2">
-                    <Button variant="hero" size="sm" className="flex-1" onClick={() => handleConfirm(c.id, c.slot_id, true)}>Confirmar Presença</Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleConfirm(c.id, c.slot_id, false)}>Recusar</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Atalhos rápidos */}
+        <div className="flex gap-3">
+          <Button variant="hero" asChild className="flex-1">
+            <Link to="/app/profissional/oportunidades">🔍 Buscar Oportunidades</Link>
+          </Button>
+          <Button variant="outline" asChild className="flex-1">
+            <Link to="/app/profissional/candidaturas">📋 Minhas Candidaturas</Link>
+          </Button>
+        </div>
 
         <div className="flex gap-3">
           <Button variant="hero" asChild className="flex-1">
