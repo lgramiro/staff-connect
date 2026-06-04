@@ -522,6 +522,7 @@ export type Database = {
         }
         Returns: string
       }
+      delete_seed_data: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -529,6 +530,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      insert_seed_data: { Args: never; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       setup_user_profile: {
         Args: {
