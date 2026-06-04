@@ -1,9 +1,10 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { AdminViewAs } from "@/components/AdminViewAs";
 import { NotificacoesDropdown } from "@/components/NotificacoesDropdown";
+import { useAdminGlobalSearch, SearchResult } from "@/hooks/useAdminGlobalSearch";
 
 import { 
   LayoutDashboard, 
@@ -17,10 +18,17 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Building2
+  Building2,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -44,13 +52,52 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [open, setOpen] = useState(false);
 
   const { signOut, profile } = useAuth();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const { data: results, isLoading } = useAdminGlobalSearch(debouncedSearch);
+
+  useEffect(() => {
+    if (debouncedSearch.length >= 3) {
+      setOpen(true);
+    } else {
+      setOpen(false);
+    }
+  }, [debouncedSearch]);
 
   const handleLogout = async () => {
     await signOut();
     navigate("/");
   };
+
+  const handleResultClick = (result: SearchResult) => {
+    setOpen(false);
+    setSearchTerm("");
+    if (result.tipo === "profissional") {
+      navigate("/admin/profissionais");
+    } else if (result.tipo === "estabelecimento") {
+      navigate("/admin/estabelecimentos");
+    } else {
+      navigate("/admin/usuarios");
+    }
+  };
+
+  const hasResults = results && (
+    results.profissionais.length > 0 || 
+    results.estabelecimentos.length > 0 || 
+    results.usuarios.length > 0
+  );
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -124,13 +171,89 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         <header className="sticky top-0 z-30 h-16 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="h-full px-6 flex items-center justify-between">
             <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Buscar..." 
-                  className="pl-9 bg-muted/50 border-0"
-                />
-              </div>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Buscar profissionais, estabelecimentos..." 
+                      className="pl-9 bg-muted/50 border-0"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    {isLoading && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-[400px] p-0" 
+                  align="start"
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <ScrollArea className="max-h-[400px]">
+                    {!hasResults && !isLoading && (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        Nenhum resultado encontrado para "{debouncedSearch}"
+                      </div>
+                    )}
+                    
+                    {results?.profissionais && results.profissionais.length > 0 && (
+                      <div className="p-2">
+                        <p className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Profissionais
+                        </p>
+                        {results.profissionais.map((p) => (
+                          <button
+                            key={p.id}
+                            className="w-full text-left px-2 py-2 text-sm hover:bg-accent rounded-md transition-colors"
+                            onClick={() => handleResultClick(p)}
+                          >
+                            {p.nome}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {results?.estabelecimentos && results.estabelecimentos.length > 0 && (
+                      <div className="p-2 border-t">
+                        <p className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Estabelecimentos
+                        </p>
+                        {results.estabelecimentos.map((e) => (
+                          <button
+                            key={e.id}
+                            className="w-full text-left px-2 py-2 text-sm hover:bg-accent rounded-md transition-colors"
+                            onClick={() => handleResultClick(e)}
+                          >
+                            {e.nome}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {results?.usuarios && results.usuarios.length > 0 && (
+                      <div className="p-2 border-t">
+                        <p className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Usuários
+                        </p>
+                        {results.usuarios.map((u) => (
+                          <button
+                            key={u.id}
+                            className="w-full text-left px-2 py-2 text-sm hover:bg-accent rounded-md transition-colors"
+                            onClick={() => handleResultClick(u)}
+                          >
+                            <div className="font-medium">{u.nome}</div>
+                            <div className="text-xs text-muted-foreground">{u.email}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="flex items-center gap-4">
