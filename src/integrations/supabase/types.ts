@@ -214,6 +214,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacoes: {
+        Row: {
+          created_at: string
+          id: string
+          lida: boolean | null
+          mensagem: string | null
+          referencia_id: string | null
+          tipo: string | null
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lida?: boolean | null
+          mensagem?: string | null
+          referencia_id?: string | null
+          tipo?: string | null
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lida?: boolean | null
+          mensagem?: string | null
+          referencia_id?: string | null
+          tipo?: string | null
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       planos: {
         Row: {
           ativo: boolean
