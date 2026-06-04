@@ -523,6 +523,10 @@ export type Database = {
         Returns: string
       }
       delete_seed_data: { Args: never; Returns: undefined }
+      estabelecimento_can_view_profissional: {
+        Args: { _profissional_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -538,6 +542,10 @@ export type Database = {
           p_role?: Database["public"]["Enums"]["app_role"]
         }
         Returns: undefined
+      }
+      user_owns_profissional: {
+        Args: { _profissional_id: string; _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
