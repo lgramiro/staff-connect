@@ -15,7 +15,13 @@ interface CriarNotificacaoParams {
  * Falhas são apenas logadas — não devem quebrar o fluxo principal.
  */
 export const criarNotificacao = async (params: CriarNotificacaoParams) => {
-  const { error } = await supabase.from("notificacoes").insert(params);
+  const { error } = await supabase.rpc("create_notificacao", {
+    p_user_id: params.user_id,
+    p_titulo: params.titulo,
+    p_mensagem: params.mensagem ?? undefined,
+    p_tipo: params.tipo,
+    p_referencia_id: params.referencia_id ?? undefined,
+  });
   if (error) {
     console.error("Erro ao criar notificação:", error);
   }
