@@ -1,47 +1,37 @@
-import { useEffect, useState } from "react";
 import { ProfissionalLayout } from "@/components/layouts/ProfissionalLayout";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Briefcase, CheckCircle2, Clock, Calendar } from "lucide-react";
+import { Briefcase, CheckCircle2, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCandidaturasByProfissional, useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
+import { useProfissionalQuery } from "@/hooks/queries/useProfissional";
+import { useUpdateSlotStatus } from "@/hooks/queries/useSlots";
 
 const ProfissionalDashboard = () => {
   const { user, profile } = useAuth();
-  const [stats, setStats] = useState({ enviadas: 0, aprovadas: 0, aguardando: 0 });
-  const [pendentes, setPendentes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: prof } = useProfissionalQuery(user?.id);
+  const { data: cands = [], isLoading: loading } = useCandidaturasByProfissional(prof?.id);
+  
+  const atualizarCandidatura = useAtualizarCandidatura();
+  const updateSlotStatus = useUpdateSlotStatus();
 
-  useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      const { data: prof } = await supabase.from("profissionais").select("id").eq("user_id", user.id).single();
-      if (!prof) { setLoading(false); return; }
+  const stats = {
+    enviadas: cands.filter(c => c.status === "enviada").length,
+    aprovadas: cands.filter(c => ["aprovada", "confirmada", "concluida"].includes(c.status)).length,
+    aguardando: cands.filter(c => c.status === "aprovada").length,
+  };
 
-      const { data: cands } = await supabase.from("candidaturas").select("*, slots(*, estabelecimentos(*))").eq("profissional_id", prof.id).order("created_at", { ascending: false });
-      if (cands) {
-        setStats({
-          enviadas: cands.filter(c => c.status === "enviada").length,
-          aprovadas: cands.filter(c => ["aprovada", "confirmada", "concluida"].includes(c.status)).length,
-          aguardando: cands.filter(c => c.status === "aprovada").length,
-        });
-        setPendentes(cands.filter(c => c.status === "aprovada"));
-      }
-      setLoading(false);
-    };
-    load();
-  }, [user]);
+  const pendentes = cands.filter(c => c.status === "aprovada");
 
   const handleConfirm = async (id: string, slotId: string, accept: boolean) => {
     if (accept) {
-      await supabase.from("candidaturas").update({ status: "confirmada" }).eq("id", id);
-      await supabase.from("slots").update({ status: "confirmado" }).eq("id", slotId);
+      atualizarCandidatura.mutate({ id, status: "confirmada" });
+      updateSlotStatus.mutate({ id: slotId, status: "confirmado" });
     } else {
-      await supabase.from("candidaturas").update({ status: "recusada" }).eq("id", id);
+      atualizarCandidatura.mutate({ id, status: "recusada" });
     }
-    // Reload
-    window.location.reload();
   };
+
 
   const statCards = [
     { label: "Candidaturas", value: stats.enviadas, icon: Briefcase, color: "bg-primary/10 text-primary" },

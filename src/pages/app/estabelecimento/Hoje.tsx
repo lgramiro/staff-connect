@@ -1,40 +1,36 @@
-import { useEffect, useState } from "react";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Phone, CheckCircle2, XCircle, Star } from "lucide-react";
+import { Phone, CheckCircle2, XCircle } from "lucide-react";
+import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
+import { useSlotsByEstabelecimento, useUpdateSlotStatus } from "@/hooks/queries/useSlots";
+import { useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
 
 const Hoje = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [slots, setSlots] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
+  
+  const { data: estab } = useEstabelecimentoQuery(user?.id);
   const today = new Date().toISOString().split("T")[0];
-
-  const load = async () => {
-    if (!user) return;
-    const { data: estab } = await supabase.from("estabelecimentos").select("id").eq("user_id", user.id).single();
-    if (!estab) { setLoading(false); return; }
-
-    const { data } = await supabase.from("slots").select("*, candidaturas(*, profissionais(*))").eq("estabelecimento_id", estab.id).eq("data", today).eq("status", "confirmado");
-    setSlots(data || []);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, [user]);
+  
+  const { data: slots = [], isLoading: loading } = useSlotsByEstabelecimento(estab?.id, { date: today, status: "confirmado" });
+  
+  const atualizarCandidatura = useAtualizarCandidatura();
+  const updateSlotStatus = useUpdateSlotStatus();
 
   const handlePresenca = async (candidaturaId: string, slotId: string, compareceu: boolean) => {
     const status = compareceu ? "concluida" : "nao_compareceu";
-    await supabase.from("candidaturas").update({ status }).eq("id", candidaturaId);
+    
+    atualizarCandidatura.mutate({ id: candidaturaId, status });
+    
     if (compareceu) {
-      await supabase.from("slots").update({ status: "concluido" }).eq("id", slotId);
+      updateSlotStatus.mutate({ id: slotId, status: "concluido" });
     }
+    
     toast({ title: compareceu ? "Presença confirmada!" : "Não comparecimento registrado." });
-    load();
   };
+
 
   return (
     <EstabelecimentoLayout>
