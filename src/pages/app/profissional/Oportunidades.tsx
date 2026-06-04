@@ -11,6 +11,7 @@ import { MapPin, Clock, Calendar, DollarSign, Zap, AlertTriangle } from "lucide-
 import { useSlotsAbertos } from "@/hooks/queries/useSlots";
 import { useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
 import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 
 const Oportunidades = () => {
@@ -89,7 +90,7 @@ const Oportunidades = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : slots.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Nenhuma vaga encontrada.</div>
         ) : (

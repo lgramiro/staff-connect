@@ -6,6 +6,7 @@ import { Phone, CheckCircle2, XCircle } from "lucide-react";
 import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
 import { useSlotsByEstabelecimento, useUpdateSlotStatus } from "@/hooks/queries/useSlots";
 import { useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const Hoje = () => {
   const { user } = useAuth();
@@ -37,7 +38,7 @@ const Hoje = () => {
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold">Hoje - {new Date().toLocaleDateString("pt-BR")}</h1>
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : slots.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Nenhum slot confirmado para hoje.</div>
         ) : (

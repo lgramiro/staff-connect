@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const EstabelecimentoDashboard = () => {
   const { user, profile } = useAuth();
@@ -165,7 +166,7 @@ const EstabelecimentoDashboard = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : (
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

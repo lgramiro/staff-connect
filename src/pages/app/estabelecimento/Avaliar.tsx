@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Star } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const Avaliar = () => {
   const { user } = useAuth();
@@ -51,7 +52,7 @@ const Avaliar = () => {
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold">Avaliar Profissionais</h1>
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : pendentes.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Nenhuma avaliação pendente.</div>
         ) : (

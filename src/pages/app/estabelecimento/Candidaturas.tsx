@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const Candidaturas = () => {
   const { user } = useAuth();
@@ -168,7 +169,7 @@ const Candidaturas = () => {
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <LoadingSpinner />
           </div>
         ) : candidaturas.length === 0 ? (
           <div className="text-center py-12 bg-card rounded-xl border border-dashed border-border text-muted-foreground">

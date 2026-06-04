@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/layouts/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const AdminLogs = () => {
   const [logs, setLogs] = useState<any[]>([]);
@@ -18,7 +19,7 @@ const AdminLogs = () => {
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold">Logs de Administração</h1>
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : logs.length === 0 ? (
           <p className="text-muted-foreground">Nenhum log registrado.</p>
         ) : (

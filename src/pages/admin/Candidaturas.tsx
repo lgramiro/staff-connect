@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/layouts/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const statusColors: Record<string, string> = {
   enviada: "bg-info/20 text-info",
@@ -29,7 +30,7 @@ const AdminCandidaturas = () => {
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold">Candidaturas</h1>
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : (
           <div className="bg-card rounded-xl border border-border overflow-x-auto">
             <table className="w-full">

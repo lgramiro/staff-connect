@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Ban, CheckCircle2 } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const AdminUsuarios = () => {
   const { user } = useAuth();
@@ -32,7 +33,7 @@ const AdminUsuarios = () => {
       <div className="space-y-6">
         <h1 className="font-display text-2xl font-bold">Usuários</h1>
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <LoadingSpinner />
         ) : (
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             <table className="w-full">

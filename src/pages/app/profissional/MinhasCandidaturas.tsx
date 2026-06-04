@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { CheckCircle2, XCircle, Clock, Calendar, MapPin, DollarSign, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const MinhasCandidaturas = () => {
   const { user } = useAuth();
@@ -169,7 +170,7 @@ const MinhasCandidaturas = () => {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <LoadingSpinner />
           </div>
         ) : (
           <Tabs defaultValue="analise" className="w-full">

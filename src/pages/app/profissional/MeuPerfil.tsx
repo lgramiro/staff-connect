@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSupabaseUrl } from "@/hooks/useSupabaseUrl";
 import { MapPin, Star, Instagram, Linkedin, Globe, Youtube, FileText, Camera, Upload, Check, Pencil } from "lucide-react";
 import { useProfissionalQuery, useProfissionalMutation } from "@/hooks/queries/useProfissional";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
@@ -108,7 +109,7 @@ const MeuPerfil = () => {
   };
 
 
-  if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div></ProfissionalLayout>;
+  if (loading) return <ProfissionalLayout><LoadingSpinner /></ProfissionalLayout>;
   if (!prof) return <ProfissionalLayout><div className="text-center py-12 text-muted-foreground">Perfil não encontrado. Complete o onboarding.</div></ProfissionalLayout>;
 
   return (
