@@ -11,6 +11,7 @@ import ResetPassword from "./pages/ResetPassword";
 import RolePicker from "./pages/RolePicker";
 import MeusPerfis from "./pages/MeusPerfis";
 import NotFound from "./pages/NotFound";
+import SeedTeste from "./pages/SeedTeste";
 
 // Onboarding
 import ProfissionalOnboarding from "./pages/onboarding/ProfissionalOnboarding";
@@ -56,6 +57,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/seed-teste" element={<SeedTeste />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/escolher-perfil" element={
               <ProtectedRoute><RolePicker /></ProtectedRoute>
