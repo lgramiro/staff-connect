@@ -19,7 +19,9 @@ const formSchema = z.object({
   data: z.string().min(1, "Data é obrigatória").refine((val) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return new Date(val) >= today;
+    // Comparação simplificada para aceitar a data de hoje
+    const selectedDate = new Date(val + 'T00:00:00');
+    return selectedDate >= today;
   }, { message: "A data não pode ser anterior a hoje" }),
   horarioInicio: z.string().min(1, "Horário de início é obrigatório"),
   horarioFim: z.string().min(1, "Horário de fim é obrigatório"),
@@ -34,11 +36,18 @@ const VagaUrgente = () => {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      funcao: "", quantidade: 1, data: "",
-      horarioInicio: "", horarioFim: "", valor: 0, endereco: ""
+      funcao: "", 
+      quantidade: 1, 
+      data: todayStr,
+      horarioInicio: "", 
+      horarioFim: "", 
+      valor: 0, 
+      endereco: ""
     }
   });
 
@@ -46,27 +55,75 @@ const VagaUrgente = () => {
     if (!user) return;
     setSaving(true);
 
-    const { data: estab } = await supabase.from("estabelecimentos").select("id, endereco").eq("user_id", user.id).single();
-    if (!estab) { toast({ title: "Erro", description: "Estabelecimento não encontrado.", variant: "destructive" }); setSaving(false); return; }
+    try {
+      const { data: estab } = await supabase
+        .from("estabelecimentos")
+        .select("id, endereco, nome")
+        .eq("user_id", user.id)
+        .single();
 
-    const { error } = await supabase.from("slots").insert({
-      estabelecimento_id: estab.id,
-      funcao: values.funcao,
-      quantidade: values.quantidade,
-      data: values.data,
-      horario_inicio: values.horarioInicio,
-      horario_fim: values.horarioFim,
-      valor: values.valor,
-      endereco: values.endereco || estab.endereco,
-      urgente: true,
-    });
-    setSaving(false);
+      if (!estab) { 
+        toast({ title: "Erro", description: "Estabelecimento não encontrado.", variant: "destructive" }); 
+        setSaving(false); 
+        return; 
+      }
 
-    if (error) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Vaga urgente criada!", description: "A vaga aparecerá no topo das oportunidades." });
+      // 1. Criar a vaga
+      const { data: slot, error: slotError } = await supabase
+        .from("slots")
+        .insert({
+          estabelecimento_id: estab.id,
+          funcao: values.funcao,
+          quantidade: values.quantidade,
+          data: values.data,
+          horario_inicio: values.horarioInicio,
+          horario_fim: values.horarioFim,
+          valor: values.valor,
+          endereco: values.endereco || estab.endereco,
+          urgente: true,
+        })
+        .select()
+        .single();
+
+      if (slotError) throw slotError;
+
+      // 2. Buscar profissionais compatíveis
+      const { data: profissionais, error: prosError } = await supabase
+        .from("profissionais")
+        .select("user_id")
+        .eq("onboarding_completo", true)
+        .contains("funcoes", [values.funcao]);
+
+      if (prosError) {
+        console.error("Erro ao buscar profissionais:", prosError);
+      }
+
+      let notifiedCount = 0;
+      if (profissionais && profissionais.length > 0) {
+        // 3. Notificar profissionais em paralelo
+        const notificationPromises = profissionais.map(p => 
+          supabase.rpc('create_notificacao', {
+            p_user_id: p.user_id,
+            p_titulo: "🚨 Vaga Urgente disponível!",
+            p_mensagem: `${values.funcao} em ${estab.nome} - hoje ${values.horarioInicio} às ${values.horarioFim} - R$ ${values.valor}`,
+            p_tipo: "candidatura",
+            p_referencia_id: slot.id
+          })
+        );
+
+        const results = await Promise.all(notificationPromises);
+        notifiedCount = results.filter(res => !res.error).length;
+      }
+
+      toast({ 
+        title: "Vaga urgente publicada!", 
+        description: `${notifiedCount} profissionais notificados.` 
+      });
       navigate("/app/estabelecimento");
+    } catch (error: any) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
   };
 
