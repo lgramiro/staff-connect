@@ -231,15 +231,6 @@ const ProfissionalDashboard = () => {
             <Link to="/app/profissional/candidaturas">📋 Minhas Candidaturas</Link>
           </Button>
         </div>
-
-        <div className="flex gap-3">
-          <Button variant="hero" asChild className="flex-1">
-            <Link to="/app/profissional/oportunidades">🔍 Buscar Oportunidades</Link>
-          </Button>
-          <Button variant="outline" asChild className="flex-1">
-            <Link to="/app/profissional/candidaturas">📋 Minhas Candidaturas</Link>
-          </Button>
-        </div>
       </div>
     </ProfissionalLayout>
   );
