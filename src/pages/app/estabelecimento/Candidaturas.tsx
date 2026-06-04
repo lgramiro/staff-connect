@@ -1,39 +1,30 @@
-import { useEffect, useState } from "react";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, XCircle, User } from "lucide-react";
+import { CheckCircle2, XCircle, User, Star, Instagram, Linkedin, Globe, MapPin, Briefcase } from "lucide-react";
 import { criarNotificacao, getProfissionalUserId } from "@/lib/notificacoes";
-
+import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
+import { useCandidaturasByEstabelecimento, useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
+import { useUpdateSlotStatus } from "@/hooks/queries/useSlots";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 const Candidaturas = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [candidaturas, setCandidaturas] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = async () => {
-    if (!user) return;
-    const { data: estab } = await supabase.from("estabelecimentos").select("id").eq("user_id", user.id).single();
-    if (!estab) return;
-
-    const { data: slots } = await supabase.from("slots").select("id").eq("estabelecimento_id", estab.id);
-    if (!slots || slots.length === 0) { setLoading(false); return; }
-
-    const slotIds = slots.map(s => s.id);
-    const { data } = await supabase.from("candidaturas").select("*, profissionais(*), slots(*)").in("slot_id", slotIds).order("created_at", { ascending: false });
-    setCandidaturas(data || []);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, [user]);
+  const { data: estab } = useEstabelecimentoQuery(user?.id);
+  const { data: candidaturas = [], isLoading: loading } = useCandidaturasByEstabelecimento(estab?.id);
+  
+  const atualizarCandidatura = useAtualizarCandidatura();
+  const updateSlotStatus = useUpdateSlotStatus();
 
   const handleAction = async (id: string, status: string, slotId: string, profissionalId: string) => {
-    await supabase.from("candidaturas").update({ status }).eq("id", id);
+    atualizarCandidatura.mutate({ id, status });
+    
     if (status === "aprovada") {
-      await supabase.from("slots").update({ status: "reservado" }).eq("id", slotId);
+      updateSlotStatus.mutate({ id: slotId, status: "reservado" });
       const profUserId = await getProfissionalUserId(profissionalId);
       if (profUserId) {
         await criarNotificacao({
@@ -45,58 +36,222 @@ const Candidaturas = () => {
         });
       }
     }
-    toast({ title: status === "aprovada" ? "Candidatura aprovada!" : "Candidatura recusada." });
-    load();
   };
 
+  const renderStars = (score: number) => {
+    const full = Math.floor(score);
+    const half = score - full >= 0.5;
+    return (
+      <div className="flex items-center gap-0.5">
+        {Array.from({ length: 5 }).map((_, i) => {
+          const filled = i < full || (i === full && half);
+          return (
+            <Star
+              key={i}
+              className={`w-3 h-3 ${filled ? "fill-warning text-warning" : "text-muted-foreground/30"}`}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
+  const ProfileDialog = ({ prof }: { prof: any }) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">Ver perfil</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Perfil do Profissional</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6 mt-4">
+          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left">
+            <Avatar className="w-24 h-24 border-2 border-primary/20">
+              <AvatarImage src={prof?.foto_url} alt={prof?.nome} />
+              <AvatarFallback><User className="w-12 h-12" /></AvatarFallback>
+            </Avatar>
+            
+            <div className="space-y-2 flex-1">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:justify-between">
+                <h2 className="text-2xl font-bold">{prof?.nome}</h2>
+                <div className="flex items-center gap-2 justify-center">
+                  <span className="font-bold text-lg">{Number(prof?.trust_score || 0).toFixed(1)}</span>
+                  {renderStars(Number(prof?.trust_score || 0))}
+                  <span className="text-sm text-muted-foreground">({prof?.total_avaliacoes || 0})</span>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> {prof?.cidade}, {prof?.estado}
+                </Badge>
+                {prof?.diaria_minima && (
+                  <Badge variant="outline">Diária a partir de R$ {Number(prof.diaria_minima).toFixed(2)}</Badge>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-center md:justify-start pt-2">
+                {prof?.instagram && (
+                  <a href={prof.instagram} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary">
+                    <Instagram className="w-5 h-5" />
+                  </a>
+                )}
+                {prof?.linkedin && (
+                  <a href={prof.linkedin} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary">
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                )}
+                {prof?.portfolio && (
+                  <a href={prof.portfolio} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary">
+                    <Globe className="w-5 h-5" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold flex items-center gap-2 mb-2">
+                  <Briefcase className="w-4 h-4 text-primary" /> Funções
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {prof?.funcoes?.map((f: string) => (
+                    <Badge key={f} variant="default">{f}</Badge>
+                  ))}
+                  {(!prof?.funcoes || prof.funcoes.length === 0) && <p className="text-sm text-muted-foreground">Não informadas</p>}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Idiomas</h3>
+                <div className="flex flex-wrap gap-2">
+                  {prof?.idiomas?.map((i: string) => (
+                    <Badge key={i} variant="outline">{i}</Badge>
+                  ))}
+                  {(!prof?.idiomas || prof.idiomas.length === 0) && <p className="text-sm text-muted-foreground">Não informados</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-2">Experiência</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {prof?.experiencia || "Nenhuma experiência detalhada informada."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const tabs = [
+    { id: "pendentes", label: "Pendentes", statuses: ["enviada"] },
+    { id: "aprovadas", label: "Aprovadas", statuses: ["aprovada", "confirmada"] },
+    { id: "concluidas", label: "Concluídas", statuses: ["concluida"] },
+  ];
 
   return (
     <EstabelecimentoLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-2xl font-bold">Candidaturas</h1>
-        {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
-        ) : candidaturas.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">Nenhuma candidatura recebida ainda.</div>
-        ) : (
-          <div className="space-y-3">
-            {candidaturas.map(c => (
-              <div key={c.id} className="bg-card rounded-xl p-4 border border-border">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">{c.profissionais?.nome || "Profissional"}</p>
-                      <p className="text-sm text-muted-foreground">{c.slots?.funcao} • {c.slots?.data} • {c.slots?.horario_inicio}-{c.slots?.horario_fim}</p>
-                      <p className="text-sm text-muted-foreground">Trust Score: {Number(c.profissionais?.trust_score || 0).toFixed(1)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {c.status === "enviada" ? (
-                      <>
-                        <Button size="sm" variant="hero" onClick={() => handleAction(c.id, "aprovada", c.slot_id, c.profissional_id)}>
-                          <CheckCircle2 className="w-4 h-4 mr-1" />Aprovar
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleAction(c.id, "recusada", c.slot_id, c.profissional_id)}>
-                          <XCircle className="w-4 h-4 mr-1" />Recusar
-                        </Button>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h1 className="font-display text-2xl font-bold">Candidaturas</h1>
+        </div>
 
-                      </>
-                    ) : (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        c.status === "aprovada" ? "bg-success/20 text-success" :
-                        c.status === "confirmada" ? "bg-primary/20 text-primary" :
-                        c.status === "recusada" ? "bg-destructive/20 text-destructive" :
-                        "bg-muted text-muted-foreground"
-                      }`}>{c.status}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
+        ) : candidaturas.length === 0 ? (
+          <div className="text-center py-12 bg-card rounded-xl border border-dashed border-border text-muted-foreground">
+            Nenhuma candidatura recebida ainda.
+          </div>
+        ) : (
+          <Tabs defaultValue="pendentes" className="w-full">
+            <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 mb-6">
+              {tabs.map(t => (
+                <TabsTrigger 
+                  key={t.id} 
+                  value={t.id}
+                  className="data-[state=active]:border-primary data-[state=active]:bg-transparent border-b-2 border-transparent rounded-none px-6 py-3 font-semibold"
+                >
+                  {t.label}
+                  <Badge variant="secondary" className="ml-2 bg-muted">
+                    {candidaturas.filter(c => t.statuses.includes(c.status)).length}
+                  </Badge>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {tabs.map(t => (
+              <TabsContent key={t.id} value={t.id} className="space-y-3 mt-0">
+                {candidaturas.filter(c => t.statuses.includes(c.status)).length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">Nenhuma candidatura nesta categoria.</div>
+                ) : (
+                  candidaturas
+                    .filter(c => t.statuses.includes(c.status))
+                    .map(c => (
+                      <div key={c.id} className="bg-card rounded-xl p-5 border border-border hover:shadow-md transition-shadow">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <Avatar className="w-12 h-12 border border-border">
+                              <AvatarImage src={c.profissionais?.foto_url} alt={c.profissionais?.nome} />
+                              <AvatarFallback><User className="w-6 h-6" /></AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-bold text-lg leading-none">{c.profissionais?.nome || "Profissional"}</p>
+                                {renderStars(Number(c.profissionais?.trust_score || 0))}
+                              </div>
+                              <p className="text-sm text-muted-foreground font-medium">
+                                {c.slots?.funcao} • {c.slots?.data} • {c.slots?.horario_inicio?.slice(0, 5)}-{c.slots?.horario_fim?.slice(0, 5)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 ml-16 md:ml-0">
+                            <ProfileDialog prof={c.profissionais} />
+                            
+                            {c.status === "enviada" ? (
+                              <>
+                                <Button size="sm" variant="hero" onClick={() => handleAction(c.id, "aprovada", c.slot_id, c.profissional_id)}>
+                                  <CheckCircle2 className="w-4 h-4 mr-1" /> Aprovar
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => handleAction(c.id, "recusada", c.slot_id, c.profissional_id)}>
+                                  <XCircle className="w-4 h-4 mr-1" /> Recusar
+                                </Button>
+                              </>
+                            ) : (
+                              <Badge className={
+                                c.status === "aprovada" ? "bg-success/20 text-success hover:bg-success/20 border-none" :
+                                c.status === "confirmada" ? "bg-primary/20 text-primary hover:bg-primary/20 border-none" :
+                                c.status === "concluida" ? "bg-blue-500/20 text-blue-500 hover:bg-blue-500/20 border-none" :
+                                c.status === "recusada" ? "bg-destructive/20 text-destructive hover:bg-destructive/20 border-none" :
+                                "bg-muted text-muted-foreground border-none"
+                              }>
+                                {c.status === "enviada" ? "Pendente" : 
+                                 c.status === "aprovada" ? "Aprovada" :
+                                 c.status === "confirmada" ? "Confirmada" :
+                                 c.status === "concluida" ? "Concluída" : 
+                                 c.status === "recusada" ? "Recusada" : c.status}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
         )}
       </div>
     </EstabelecimentoLayout>
