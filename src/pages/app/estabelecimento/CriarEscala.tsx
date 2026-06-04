@@ -92,7 +92,7 @@ const CriarEscala = () => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="bg-card rounded-xl p-6 border border-border space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="dataInicio" render={({ field }) => <FormItem><FormLabel>Data início</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>} />
               <FormField control={form.control} name="dataFim" render={({ field }) => <FormItem><FormLabel>Data fim (opcional)</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>} />
             </div>
@@ -101,12 +101,12 @@ const CriarEscala = () => {
               <FormItem><FormLabel>Função</FormLabel><FormControl><select {...field} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Selecione</option>{getFuncoes().map(f => <option key={f} value={f}>{f}</option>)}</select></FormControl><FormMessage /></FormItem>
             )} />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="quantidade" render={({ field }) => <FormItem><FormLabel>Quantidade</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>} />
               <FormField control={form.control} name="valor" render={({ field }) => <FormItem><FormLabel>Valor (R$)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="horarioInicio" render={({ field }) => <FormItem><FormLabel>Horário início</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>} />
               <FormField control={form.control} name="horarioFim" render={({ field }) => <FormItem><FormLabel>Horário fim</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>} />
             </div>
