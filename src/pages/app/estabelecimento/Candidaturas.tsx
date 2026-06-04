@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, XCircle, User } from "lucide-react";
+import { criarNotificacao, getProfissionalUserId } from "@/lib/notificacoes";
+
 
 const Candidaturas = () => {
   const { user } = useAuth();
@@ -28,14 +30,25 @@ const Candidaturas = () => {
 
   useEffect(() => { load(); }, [user]);
 
-  const handleAction = async (id: string, status: string, slotId: string) => {
+  const handleAction = async (id: string, status: string, slotId: string, profissionalId: string) => {
     await supabase.from("candidaturas").update({ status }).eq("id", id);
     if (status === "aprovada") {
       await supabase.from("slots").update({ status: "reservado" }).eq("id", slotId);
+      const profUserId = await getProfissionalUserId(profissionalId);
+      if (profUserId) {
+        await criarNotificacao({
+          user_id: profUserId,
+          titulo: "Sua candidatura foi aprovada!",
+          mensagem: "Confirme sua presença para garantir a vaga.",
+          tipo: "aprovacao",
+          referencia_id: id,
+        });
+      }
     }
     toast({ title: status === "aprovada" ? "Candidatura aprovada!" : "Candidatura recusada." });
     load();
   };
+
 
   return (
     <EstabelecimentoLayout>
@@ -63,12 +76,13 @@ const Candidaturas = () => {
                   <div className="flex items-center gap-2">
                     {c.status === "enviada" ? (
                       <>
-                        <Button size="sm" variant="hero" onClick={() => handleAction(c.id, "aprovada", c.slot_id)}>
+                        <Button size="sm" variant="hero" onClick={() => handleAction(c.id, "aprovada", c.slot_id, c.profissional_id)}>
                           <CheckCircle2 className="w-4 h-4 mr-1" />Aprovar
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleAction(c.id, "recusada", c.slot_id)}>
+                        <Button size="sm" variant="ghost" onClick={() => handleAction(c.id, "recusada", c.slot_id, c.profissional_id)}>
                           <XCircle className="w-4 h-4 mr-1" />Recusar
                         </Button>
+
                       </>
                     ) : (
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${

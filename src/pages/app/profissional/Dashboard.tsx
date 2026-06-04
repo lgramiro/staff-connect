@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import { useCandidaturasByProfissional, useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
 import { useProfissionalQuery } from "@/hooks/queries/useProfissional";
 import { useUpdateSlotStatus } from "@/hooks/queries/useSlots";
+import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
+
 
 const ProfissionalDashboard = () => {
   const { user, profile } = useAuth();
@@ -27,10 +29,22 @@ const ProfissionalDashboard = () => {
     if (accept) {
       atualizarCandidatura.mutate({ id, status: "confirmada" });
       updateSlotStatus.mutate({ id: slotId, status: "confirmado" });
+      
+      const estabUserId = await getEstabelecimentoUserIdBySlot(slotId);
+      if (estabUserId) {
+        await criarNotificacao({
+          user_id: estabUserId,
+          titulo: "Profissional confirmou presença",
+          mensagem: "Um profissional confirmou presença em uma vaga.",
+          tipo: "confirmacao",
+          referencia_id: id,
+        });
+      }
     } else {
       atualizarCandidatura.mutate({ id, status: "recusada" });
     }
   };
+
 
 
   const statCards = [
