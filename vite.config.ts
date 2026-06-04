@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
     env.VITE_SUPABASE_ANON_KEY ||
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
     process.env.VITE_SUPABASE_ANON_KEY ||
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6Im9laXJ4enV3YmN4bHJzaGdnbGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTUzNDIsImV4cCI6MjA4ODU5MTM0Mn0.g52OZiVPXiGsg3PuOZlqqoiz7Kk2W5QZmMeUhvUneNc";
+    "sb_publishable_uYgPCkxkoa7cfTI9h_teEw_pL_93vur";
 
   return {
     server: {
