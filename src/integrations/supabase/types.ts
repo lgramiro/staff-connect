@@ -519,6 +519,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
       setup_user_profile: {
         Args: {
           p_nome?: string
