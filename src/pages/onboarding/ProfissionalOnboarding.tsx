@@ -1,10 +1,13 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +15,23 @@ import { useToast } from "@/hooks/use-toast";
 import { ChefHat, ArrowRight, ArrowLeft, Check } from "lucide-react";
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+
+const formSchema = z.object({
+  nome: z.string().min(2, "Nome é obrigatório"),
+  whatsapp: z.string().min(10, "WhatsApp inválido"),
+  cidade: z.string().min(2, "Cidade é obrigatória"),
+  estado: z.string().min(2, "Estado é obrigatório"),
+  funcoes: z.array(z.string()).min(1, "Selecione pelo menos uma função"),
+  disponibilidade: z.array(z.string()).min(1, "Selecione pelo menos um dia"),
+  diaria_minima: z.coerce.number().positive("Valor deve ser maior que 0"),
+  experiencia: z.string().optional(),
+  idiomas: z.string().optional(),
+  certificacoes: z.string().optional(),
+  instagram: z.string().optional(),
+  linkedin: z.string().optional(),
+  portfolio: z.string().optional(),
+  youtube: z.string().optional(),
+});
 
 const ProfissionalOnboarding = () => {
   const { user } = useAuth();
@@ -21,46 +41,24 @@ const ProfissionalOnboarding = () => {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState({
-    nome: "", whatsapp: "", cidade: "", estado: "",
-    funcoes: [] as string[], disponibilidade: [] as string[],
-    diaria_minima: "", experiencia: "", idiomas: "",
-    certificacoes: "", instagram: "", linkedin: "", portfolio: "", youtube: ""
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      nome: "", whatsapp: "", cidade: "", estado: "",
+      funcoes: [], disponibilidade: [], diaria_minima: 0,
+      experiencia: "", idiomas: "", certificacoes: "",
+      instagram: "", linkedin: "", portfolio: "", youtube: ""
+    }
   });
 
-  const toggleFuncao = (f: string) => {
-    setForm(prev => ({
-      ...prev,
-      funcoes: prev.funcoes.includes(f) ? prev.funcoes.filter(x => x !== f) : [...prev.funcoes, f]
-    }));
-  };
-
-  const toggleDia = (d: string) => {
-    setForm(prev => ({
-      ...prev,
-      disponibilidade: prev.disponibilidade.includes(d) ? prev.disponibilidade.filter(x => x !== d) : [...prev.disponibilidade, d]
-    }));
-  };
-
-  const handleSubmit = async () => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) return;
     setSaving(true);
     const { error } = await supabase.from("profissionais").insert({
       user_id: user.id,
-      nome: form.nome,
-      whatsapp: form.whatsapp,
-      cidade: form.cidade,
-      estado: form.estado,
-      funcoes: form.funcoes,
-      disponibilidade: form.disponibilidade,
-      diaria_minima: parseFloat(form.diaria_minima) || 0,
-      experiencia: form.experiencia || null,
-      idiomas: form.idiomas ? form.idiomas.split(",").map(s => s.trim()) : [],
-      certificacoes: form.certificacoes ? form.certificacoes.split(",").map(s => s.trim()) : [],
-      instagram: form.instagram || null,
-      linkedin: form.linkedin || null,
-      portfolio: form.portfolio || null,
-      youtube: form.youtube || null,
+      ...values,
+      idiomas: values.idiomas ? values.idiomas.split(",").map(s => s.trim()) : [],
+      certificacoes: values.certificacoes ? values.certificacoes.split(",").map(s => s.trim()) : [],
       onboarding_completo: true,
     });
     setSaving(false);
@@ -74,6 +72,18 @@ const ProfissionalOnboarding = () => {
 
   const totalSteps = 5;
 
+  const validateStep = async () => {
+    let fields: (keyof z.infer<typeof formSchema>)[] = [];
+    if (step === 1) fields = ["nome", "whatsapp"];
+    if (step === 2) fields = ["cidade", "estado"];
+    if (step === 3) fields = ["funcoes"];
+    if (step === 4) fields = ["disponibilidade"];
+    if (step === 5) fields = ["diaria_minima"];
+
+    const output = await form.trigger(fields);
+    if (output) setStep(s => s + 1);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-warm flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-card rounded-2xl shadow-xl border border-border p-8">
@@ -84,7 +94,6 @@ const ProfissionalOnboarding = () => {
           <span className="font-display text-xl font-bold">Tem Staff</span>
         </div>
 
-        {/* Progress */}
         <div className="flex gap-1 mb-6">
           {Array.from({ length: totalSteps }, (_, i) => (
             <div key={i} className={`h-1.5 flex-1 rounded-full ${i < step ? "bg-primary" : "bg-muted"}`} />
@@ -92,104 +101,66 @@ const ProfissionalOnboarding = () => {
         </div>
         <p className="text-sm text-muted-foreground mb-6">Passo {step} de {totalSteps}</p>
 
-        {step === 1 && (
-          <div className="space-y-4">
-            <h2 className="font-display text-xl font-bold">Dados básicos</h2>
-            <div className="space-y-2">
-              <Label>Nome completo</Label>
-              <Input value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="Seu nome" />
-            </div>
-            <div className="space-y-2">
-              <Label>WhatsApp</Label>
-              <Input value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} placeholder="(11) 99999-9999" />
-            </div>
-          </div>
-        )}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {step === 1 && (
+              <>
+                <FormField control={form.control} name="nome" render={({ field }) => <FormItem><FormLabel>Nome completo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                <FormField control={form.control} name="whatsapp" render={({ field }) => <FormItem><FormLabel>WhatsApp</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+              </>
+            )}
 
-        {step === 2 && (
-          <div className="space-y-4">
-            <h2 className="font-display text-xl font-bold">Localização</h2>
-            <div className="space-y-2">
-              <Label>Cidade</Label>
-              <Input value={form.cidade} onChange={e => setForm({ ...form, cidade: e.target.value })} placeholder="Sua cidade" />
-            </div>
-            <div className="space-y-2">
-              <Label>Estado</Label>
-              <select value={form.estado} onChange={e => setForm({ ...form, estado: e.target.value })} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
-                <option value="">Selecione</option>
-                {getEstados().map(e => <option key={e} value={e}>{e}</option>)}
-              </select>
-            </div>
-          </div>
-        )}
+            {step === 2 && (
+              <>
+                <FormField control={form.control} name="cidade" render={({ field }) => <FormItem><FormLabel>Cidade</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+                <FormField control={form.control} name="estado" render={({ field }) => (
+                    <FormItem><FormLabel>Estado</FormLabel><FormControl><select {...field} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Selecione</option>{getEstados().map(e => <option key={e} value={e}>{e}</option>)}</select></FormControl><FormMessage /></FormItem>
+                )} />
+              </>
+            )}
 
-        {step === 3 && (
-          <div className="space-y-4">
-            <h2 className="font-display text-xl font-bold">Funções</h2>
-            <p className="text-sm text-muted-foreground">Selecione as funções que você exerce</p>
-            <div className="flex flex-wrap gap-2">
-              {getFuncoes().map(f => (
-                <Badge key={f} variant={form.funcoes.includes(f) ? "default" : "outline"} className="cursor-pointer text-sm py-1.5 px-3" onClick={() => toggleFuncao(f)}>
-                  {form.funcoes.includes(f) && <Check className="w-3 h-3 mr-1" />}
-                  {f}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+            {step === 3 && (
+              <FormField control={form.control} name="funcoes" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Funções</FormLabel>
+                  <div className="flex flex-wrap gap-2">{getFuncoes().map(f => (
+                    <Badge key={f} variant={field.value.includes(f) ? "default" : "outline"} className="cursor-pointer" onClick={() => field.onChange(field.value.includes(f) ? field.value.filter(x => x !== f) : [...field.value, f])}>
+                      {field.value.includes(f) && <Check className="w-3 h-3 mr-1" />}{f}
+                    </Badge>
+                  ))}</div>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            )}
 
-        {step === 4 && (
-          <div className="space-y-4">
-            <h2 className="font-display text-xl font-bold">Disponibilidade</h2>
-            <div className="flex flex-wrap gap-2">
-              {DIAS.map(d => (
-                <Badge key={d} variant={form.disponibilidade.includes(d) ? "default" : "outline"} className="cursor-pointer text-sm py-1.5 px-3" onClick={() => toggleDia(d)}>
-                  {form.disponibilidade.includes(d) && <Check className="w-3 h-3 mr-1" />}
-                  {d}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+            {step === 4 && (
+              <FormField control={form.control} name="disponibilidade" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Disponibilidade</FormLabel>
+                  <div className="flex flex-wrap gap-2">{DIAS.map(d => (
+                    <Badge key={d} variant={field.value.includes(d) ? "default" : "outline"} className="cursor-pointer" onClick={() => field.onChange(field.value.includes(d) ? field.value.filter(x => x !== d) : [...field.value, d])}>
+                      {field.value.includes(d) && <Check className="w-3 h-3 mr-1" />}{d}
+                    </Badge>
+                  ))}</div>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            )}
 
-        {step === 5 && (
-          <div className="space-y-4">
-            <h2 className="font-display text-xl font-bold">Valor e extras</h2>
-            <div className="space-y-2">
-              <Label>Diária mínima (R$)</Label>
-              <Input type="number" value={form.diaria_minima} onChange={e => setForm({ ...form, diaria_minima: e.target.value })} placeholder="150" />
-            </div>
-            <div className="space-y-2">
-              <Label>Experiência (opcional)</Label>
-              <Textarea value={form.experiencia} onChange={e => setForm({ ...form, experiencia: e.target.value })} placeholder="Conte sobre sua experiência..." />
-            </div>
-            <div className="space-y-2">
-              <Label>Instagram (opcional)</Label>
-              <Input value={form.instagram} onChange={e => setForm({ ...form, instagram: e.target.value })} placeholder="@seuperfil" />
-            </div>
-            <div className="space-y-2">
-              <Label>LinkedIn (opcional)</Label>
-              <Input value={form.linkedin} onChange={e => setForm({ ...form, linkedin: e.target.value })} placeholder="URL do LinkedIn" />
-            </div>
-          </div>
-        )}
+            {step === 5 && (
+              <>
+                <FormField control={form.control} name="diaria_minima" render={({ field }) => <FormItem><FormLabel>Diária mínima (R$)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>} />
+                <FormField control={form.control} name="experiencia" render={({ field }) => <FormItem><FormLabel>Experiência (opcional)</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>} />
+                <FormField control={form.control} name="instagram" render={({ field }) => <FormItem><FormLabel>Instagram (opcional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+              </>
+            )}
 
-        <div className="flex justify-between mt-8">
-          {step > 1 ? (
-            <Button variant="ghost" onClick={() => setStep(s => s - 1)}>
-              <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
-            </Button>
-          ) : <div />}
-          {step < totalSteps ? (
-            <Button variant="hero" onClick={() => setStep(s => s + 1)}>
-              Próximo <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : (
-            <Button variant="hero" onClick={handleSubmit} disabled={saving}>
-              {saving ? "Salvando..." : "Concluir Cadastro"}
-            </Button>
-          )}
-        </div>
+            <div className="flex justify-between mt-8">
+              {step > 1 ? <Button type="button" variant="ghost" onClick={() => setStep(s => s - 1)}><ArrowLeft className="w-4 h-4 mr-1" /> Voltar</Button> : <div />}
+              {step < totalSteps ? <Button type="button" variant="hero" onClick={validateStep}>Próximo <ArrowRight className="w-4 h-4 ml-1" /></Button> : <Button variant="hero" disabled={saving}>{saving ? "Salvando..." : "Concluir Cadastro"}</Button>}
+            </div>
+          </form>
+        </Form>
       </div>
     </div>
   );

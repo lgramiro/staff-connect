@@ -1,15 +1,36 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+
+const formSchema = z.object({
+  dataInicio: z.string().min(1, "Data de início é obrigatória"),
+  dataFim: z.string().optional(),
+  funcao: z.string().min(1, "Selecione a função"),
+  quantidade: z.coerce.number().min(1, "Mínimo 1"),
+  horarioInicio: z.string().min(1, "Horário de início é obrigatório"),
+  horarioFim: z.string().min(1, "Horário de fim é obrigatório"),
+  valor: z.coerce.number().positive("O valor deve ser maior que 0"),
+  endereco: z.string().optional()
+}).refine((data) => {
+  if (data.dataFim) {
+    return new Date(data.dataFim) >= new Date(data.dataInicio);
+  }
+  return true;
+}, {
+  message: "Data fim deve ser posterior ou igual à data de início",
+  path: ["dataFim"],
+});
 
 const CriarEscala = () => {
   const { user } = useAuth();
@@ -18,33 +39,35 @@ const CriarEscala = () => {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState({
-    dataInicio: "", dataFim: "", funcao: "", quantidade: "1",
-    horarioInicio: "", horarioFim: "", valor: "", endereco: ""
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      dataInicio: "", dataFim: "", funcao: "", quantidade: 1,
+      horarioInicio: "", horarioFim: "", valor: 0, endereco: ""
+    }
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) return;
     setSaving(true);
 
     const { data: estab } = await supabase.from("estabelecimentos").select("id, endereco").eq("user_id", user.id).single();
     if (!estab) { toast({ title: "Erro", description: "Estabelecimento não encontrado.", variant: "destructive" }); setSaving(false); return; }
 
-    const start = new Date(form.dataInicio);
-    const end = form.dataFim ? new Date(form.dataFim) : start;
+    const start = new Date(values.dataInicio);
+    const end = values.dataFim ? new Date(values.dataFim) : start;
     const slotsToInsert = [];
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       slotsToInsert.push({
         estabelecimento_id: estab.id,
-        funcao: form.funcao,
-        quantidade: parseInt(form.quantidade),
+        funcao: values.funcao,
+        quantidade: values.quantidade,
         data: d.toISOString().split("T")[0],
-        horario_inicio: form.horarioInicio,
-        horario_fim: form.horarioFim,
-        valor: parseFloat(form.valor),
-        endereco: form.endereco || estab.endereco,
+        horario_inicio: values.horarioInicio,
+        horario_fim: values.horarioFim,
+        valor: values.valor,
+        endereco: values.endereco || estab.endereco,
       });
     }
 
@@ -67,57 +90,32 @@ const CriarEscala = () => {
           <h1 className="font-display text-2xl font-bold">Criar Escala</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-card rounded-xl p-6 border border-border space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Data início</Label>
-              <Input type="date" required value={form.dataInicio} onChange={e => setForm({ ...form, dataInicio: e.target.value })} />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="bg-card rounded-xl p-6 border border-border space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="dataInicio" render={({ field }) => <FormItem><FormLabel>Data início</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>} />
+              <FormField control={form.control} name="dataFim" render={({ field }) => <FormItem><FormLabel>Data fim (opcional)</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>} />
             </div>
-            <div className="space-y-2">
-              <Label>Data fim (opcional)</Label>
-              <Input type="date" value={form.dataFim} onChange={e => setForm({ ...form, dataFim: e.target.value })} />
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Função</Label>
-            <select required value={form.funcao} onChange={e => setForm({ ...form, funcao: e.target.value })} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
-              <option value="">Selecione</option>
-              {getFuncoes().map(f => <option key={f} value={f}>{f}</option>)}
-            </select>
-          </div>
+            <FormField control={form.control} name="funcao" render={({ field }) => (
+              <FormItem><FormLabel>Função</FormLabel><FormControl><select {...field} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Selecione</option>{getFuncoes().map(f => <option key={f} value={f}>{f}</option>)}</select></FormControl><FormMessage /></FormItem>
+            )} />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Quantidade</Label>
-              <Input type="number" min="1" required value={form.quantidade} onChange={e => setForm({ ...form, quantidade: e.target.value })} />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="quantidade" render={({ field }) => <FormItem><FormLabel>Quantidade</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>} />
+              <FormField control={form.control} name="valor" render={({ field }) => <FormItem><FormLabel>Valor (R$)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>} />
             </div>
-            <div className="space-y-2">
-              <Label>Valor (R$)</Label>
-              <Input type="number" step="0.01" required value={form.valor} onChange={e => setForm({ ...form, valor: e.target.value })} />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Horário início</Label>
-              <Input type="time" required value={form.horarioInicio} onChange={e => setForm({ ...form, horarioInicio: e.target.value })} />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="horarioInicio" render={({ field }) => <FormItem><FormLabel>Horário início</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>} />
+              <FormField control={form.control} name="horarioFim" render={({ field }) => <FormItem><FormLabel>Horário fim</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>} />
             </div>
-            <div className="space-y-2">
-              <Label>Horário fim</Label>
-              <Input type="time" required value={form.horarioFim} onChange={e => setForm({ ...form, horarioFim: e.target.value })} />
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Endereço (opcional, usa do estabelecimento se vazio)</Label>
-            <Input value={form.endereco} onChange={e => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, número" />
-          </div>
+            <FormField control={form.control} name="endereco" render={({ field }) => <FormItem><FormLabel>Endereço (opcional)</FormLabel><FormControl><Input {...field} placeholder="Rua, número" /></FormControl><FormMessage /></FormItem>} />
 
-          <Button type="submit" variant="hero" className="w-full" disabled={saving}>
-            {saving ? "Criando..." : "Criar Escala"}
-          </Button>
-        </form>
+            <Button type="submit" variant="hero" className="w-full" disabled={saving}>{saving ? "Criando..." : "Criar Escala"}</Button>
+          </form>
+        </Form>
       </div>
     </EstabelecimentoLayout>
   );
