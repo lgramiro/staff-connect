@@ -2,6 +2,8 @@ import { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { NotificacoesDropdown } from "@/components/NotificacoesDropdown";
+
 import { 
   Home, 
   Search, 

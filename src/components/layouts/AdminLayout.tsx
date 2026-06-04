@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { AdminViewAs } from "@/components/AdminViewAs";
+import { NotificacoesDropdown } from "@/components/NotificacoesDropdown";
+
 import { 
   LayoutDashboard, 
   Users, 
