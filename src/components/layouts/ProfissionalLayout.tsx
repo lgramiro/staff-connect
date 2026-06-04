@@ -2,6 +2,8 @@ import { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { NotificacoesDropdown } from "@/components/NotificacoesDropdown";
+
 import { 
   Home, 
   Search, 
@@ -68,10 +70,8 @@ export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
 
           <div className="flex items-center gap-2">
             <RoleSwitcher />
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
-            </Button>
+            <NotificacoesDropdown />
+
             
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="w-5 h-5" />
