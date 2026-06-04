@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { MapPin, Clock, Calendar, DollarSign, Zap, AlertTriangle } from "lucide-react";
 import { useSlotsAbertos } from "@/hooks/queries/useSlots";
 import { useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
+import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
+
 
 const Oportunidades = () => {
   const { user } = useAuth();
@@ -40,11 +42,28 @@ const Oportunidades = () => {
       return;
     }
     
-    criarCandidatura.mutate({
-      slot_id: slotId,
-      profissional_id: profId,
-    });
+    criarCandidatura.mutate(
+      {
+        slot_id: slotId,
+        profissional_id: profId,
+      },
+      {
+        onSuccess: async (candidatura) => {
+          const estabUserId = await getEstabelecimentoUserIdBySlot(slotId);
+          if (estabUserId) {
+            await criarNotificacao({
+              user_id: estabUserId,
+              titulo: "Nova candidatura recebida",
+              mensagem: "Um profissional se candidatou a uma de suas vagas.",
+              tipo: "candidatura",
+              referencia_id: candidatura?.id,
+            });
+          }
+        },
+      }
+    );
   };
+
 
 
   return (
