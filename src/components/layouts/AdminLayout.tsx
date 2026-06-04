@@ -1,9 +1,10 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { AdminViewAs } from "@/components/AdminViewAs";
 import { NotificacoesDropdown } from "@/components/NotificacoesDropdown";
+import { useAdminGlobalSearch, SearchResult } from "@/hooks/useAdminGlobalSearch";
 
 import { 
   LayoutDashboard, 
@@ -17,10 +18,17 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Building2
+  Building2,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AdminLayoutProps {
   children: ReactNode;
