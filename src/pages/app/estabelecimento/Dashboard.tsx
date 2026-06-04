@@ -28,8 +28,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const EstabelecimentoDashboard = () => {
+  usePageTitle("Dashboard | Tem Staff");
   const { user, profile } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
