@@ -2,70 +2,138 @@ import { useEffect, useState } from "react";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Check, X, Crown } from "lucide-react";
+import { Check, X, Crown, Calendar, MessageCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const PlanosComparar = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [planos, setPlanos] = useState<any[]>([]);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [assinatura, setAssinatura] = useState<{ inicio: string; fim: string | null } | null>(null);
+  const [contatoUpgrade, setContatoUpgrade] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [planoSelecionado, setPlanoSelecionado] = useState<any | null>(null);
 
   useEffect(() => {
     const load = async () => {
-      const [p, estab] = await Promise.all([
+      const [p, estab, setting] = await Promise.all([
         supabase.from("planos").select("*").eq("ativo", true).order("preco"),
-        supabase.from("estabelecimentos").select("id").eq("user_id", user!.id).single(),
+        supabase.from("estabelecimentos").select("id").eq("user_id", user!.id).maybeSingle(),
+        supabase.from("settings").select("valor").eq("chave", "contato_upgrade").maybeSingle(),
       ]);
       setPlanos(p.data || []);
+      setContatoUpgrade(setting.data?.valor || "");
       if (estab.data) {
-        const { data: ass } = await supabase.from("assinaturas").select("plano_id").eq("estabelecimento_id", estab.data.id).eq("status", "ativa").single();
-        if (ass) setCurrentPlan(ass.plano_id);
+        const { data: ass } = await supabase
+          .from("assinaturas")
+          .select("plano_id, inicio, fim")
+          .eq("estabelecimento_id", estab.data.id)
+          .eq("status", "ativa")
+          .maybeSingle();
+        if (ass) {
+          setCurrentPlan(ass.plano_id);
+          setAssinatura({ inicio: ass.inicio, fim: ass.fim });
+        }
       }
       setLoading(false);
     };
     if (user) load();
   }, [user]);
 
-  const Feature = ({ enabled }: { enabled: boolean }) => enabled
-    ? <Check className="w-5 h-5 text-success mx-auto" />
-    : <X className="w-5 h-5 text-muted-foreground/40 mx-auto" />;
+  const Feature = ({ enabled }: { enabled: boolean }) =>
+    enabled ? (
+      <Check className="w-5 h-5 text-success mx-auto" />
+    ) : (
+      <X className="w-5 h-5 text-muted-foreground/40 mx-auto" />
+    );
+
+  const formatDate = (d?: string | null) =>
+    d ? new Date(d).toLocaleDateString("pt-BR") : "—";
+
+  const isWhatsapp = /^\+?\d[\d\s\-()]*$/.test(contatoUpgrade.trim());
+  const isEmail = /@/.test(contatoUpgrade);
+  const contatoHref = isWhatsapp
+    ? `https://wa.me/${contatoUpgrade.replace(/\D/g, "")}?text=${encodeURIComponent(
+        `Olá! Tenho interesse em fazer upgrade para o plano ${planoSelecionado?.nome || ""} no Tem Staff.`
+      )}`
+    : isEmail
+      ? `mailto:${contatoUpgrade}?subject=${encodeURIComponent(
+          `Upgrade de plano - ${planoSelecionado?.nome || ""}`
+        )}`
+      : "#";
+
+  const openUpgrade = (p: any) => {
+    setPlanoSelecionado(p);
+    setUpgradeOpen(true);
+  };
 
   return (
     <EstabelecimentoLayout>
       <div className="space-y-6">
         <div className="text-center">
           <h1 className="font-display text-2xl font-bold">Planos Tem Staff</h1>
-          <p className="text-muted-foreground mt-1">Escolha o plano ideal para o seu estabelecimento</p>
+          <p className="text-muted-foreground mt-1">
+            Escolha o plano ideal para o seu estabelecimento
+          </p>
         </div>
 
+        {assinatura && (
+          <div className="max-w-md mx-auto bg-card border border-border rounded-xl p-4 flex items-center justify-center gap-3 text-sm">
+            <Calendar className="w-4 h-4 text-primary" />
+            <span className="text-muted-foreground">Assinatura ativa:</span>
+            <span className="font-semibold">
+              {formatDate(assinatura.inicio)} → {formatDate(assinatura.fim)}
+            </span>
+          </div>
+        )}
+
         {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {planos.map((p, i) => {
               const isPopular = i === 1;
               const isCurrent = p.id === currentPlan;
+              const isPago = Number(p.preco) > 0;
               return (
-                <div key={p.id} className={`relative bg-card rounded-2xl p-6 border-2 transition-all ${isPopular ? "border-primary shadow-glow scale-105" : "border-border"} ${isCurrent ? "ring-2 ring-primary" : ""}`}>
-                  {isPopular && (
+                <div
+                  key={p.id}
+                  className={`relative bg-card rounded-2xl p-6 border-2 transition-all ${
+                    isPopular ? "border-primary shadow-glow scale-105" : "border-border"
+                  } ${isCurrent ? "ring-2 ring-primary" : ""}`}
+                >
+                  {isPopular && !isCurrent && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-hero text-primary-foreground px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                       <Crown className="w-3 h-3" /> POPULAR
                     </div>
                   )}
                   {isCurrent && (
-                    <div className="absolute -top-3 right-4 bg-success text-success-foreground px-3 py-1 rounded-full text-xs font-bold">
-                      ATUAL
-                    </div>
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-success text-success-foreground hover:bg-success">
+                      Plano atual
+                    </Badge>
                   )}
                   <h3 className="font-display text-xl font-bold text-center mt-2">{p.nome}</h3>
                   <div className="text-center my-4">
-                    <span className="text-4xl font-display font-bold text-primary">R$ {Number(p.preco).toFixed(0)}</span>
+                    <span className="text-4xl font-display font-bold text-primary">
+                      R$ {Number(p.preco).toFixed(0)}
+                    </span>
                     <span className="text-muted-foreground text-sm">/mês</span>
                   </div>
-                  {p.descricao && <p className="text-sm text-muted-foreground text-center mb-4">{p.descricao}</p>}
+                  {p.descricao && (
+                    <p className="text-sm text-muted-foreground text-center mb-4">{p.descricao}</p>
+                  )}
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between text-sm">
                       <span>Vagas/mês</span>
@@ -92,9 +160,13 @@ const PlanosComparar = () => {
                       <Feature enabled={p.favoritos} />
                     </div>
                   </div>
-                  <Button variant={isPopular ? "hero" : "outline"} className="w-full" disabled={isCurrent}
-                    onClick={() => toast({ title: "Em breve!", description: "A integração de pagamento será ativada em breve." })}>
-                    {isCurrent ? "Plano Atual" : "Selecionar Plano"}
+                  <Button
+                    variant={isPopular ? "hero" : "outline"}
+                    className="w-full"
+                    disabled={isCurrent}
+                    onClick={() => (isPago ? openUpgrade(p) : openUpgrade(p))}
+                  >
+                    {isCurrent ? "Plano Atual" : isPago ? "Fazer upgrade" : "Selecionar Plano"}
                   </Button>
                 </div>
               );
@@ -103,9 +175,57 @@ const PlanosComparar = () => {
         )}
 
         <p className="text-xs text-center text-muted-foreground max-w-md mx-auto">
-          O Tem Staff cobra somente pelo uso da plataforma. O pagamento do serviço é feito diretamente entre as partes.
+          O Tem Staff cobra somente pelo uso da plataforma. O pagamento do serviço é feito
+          diretamente entre as partes.
         </p>
       </div>
+
+      <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upgrade para {planoSelecionado?.nome}</DialogTitle>
+            <DialogDescription className="space-y-3 pt-2">
+              <span className="block">
+                O pagamento do plano <strong>{planoSelecionado?.nome}</strong> (R${" "}
+                {planoSelecionado ? Number(planoSelecionado.preco).toFixed(2) : "0,00"}/mês) é
+                realizado diretamente com nossa equipe.
+              </span>
+              <span className="block">
+                Entre em contato pelo canal abaixo para ativar seu novo plano:
+              </span>
+              {contatoUpgrade ? (
+                <span className="block bg-muted rounded-lg p-3 font-mono text-sm text-foreground">
+                  {contatoUpgrade}
+                </span>
+              ) : (
+                <span className="block text-destructive text-sm">
+                  Nenhum contato configurado. Procure o administrador da plataforma.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setUpgradeOpen(false)}>
+              Fechar
+            </Button>
+            {contatoUpgrade && (isWhatsapp || isEmail) && (
+              <Button asChild variant="hero">
+                <a href={contatoHref} target="_blank" rel="noopener noreferrer">
+                  {isWhatsapp ? (
+                    <>
+                      <MessageCircle className="w-4 h-4 mr-2" /> Falar no WhatsApp
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 mr-2" /> Enviar e-mail
+                    </>
+                  )}
+                </a>
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </EstabelecimentoLayout>
   );
 };
