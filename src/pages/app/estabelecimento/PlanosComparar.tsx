@@ -6,7 +6,6 @@ import { Check, X, Crown, Calendar, MessageCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-import { LoadingSpinner } from "@/components/LoadingSpinner";
   Dialog,
   DialogContent,
   DialogDescription,
@@ -14,6 +13,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const PlanosComparar = () => {
   const { user } = useAuth();
