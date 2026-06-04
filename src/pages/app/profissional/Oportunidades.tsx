@@ -74,7 +74,7 @@ const Oportunidades = () => {
         <h1 className="font-display text-2xl font-bold">Oportunidades</h1>
 
         {/* Filters */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <Input placeholder="Cidade" value={filters.cidade} onChange={e => setFilters({ ...filters, cidade: e.target.value })} />
           <select value={filters.funcao} onChange={e => setFilters({ ...filters, funcao: e.target.value })} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
             <option value="">Todas as funções</option>

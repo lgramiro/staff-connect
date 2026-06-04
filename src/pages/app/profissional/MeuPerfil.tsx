@@ -158,7 +158,7 @@ const MeuPerfil = () => {
 
           {editing ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>WhatsApp</Label><Input value={form.whatsapp || ""} onChange={e => setForm({ ...form, whatsapp: e.target.value })} /></div>
                 <div className="space-y-2"><Label>Cidade</Label><Input value={form.cidade || ""} onChange={e => setForm({ ...form, cidade: e.target.value })} /></div>
                 <div className="space-y-2"><Label>Estado</Label><Input value={form.estado || ""} onChange={e => setForm({ ...form, estado: e.target.value })} /></div>
@@ -188,7 +188,7 @@ const MeuPerfil = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>Instagram</Label><Input value={form.instagram || ""} onChange={e => setForm({ ...form, instagram: e.target.value })} placeholder="@perfil" /></div>
                 <div className="space-y-2"><Label>LinkedIn</Label><Input value={form.linkedin || ""} onChange={e => setForm({ ...form, linkedin: e.target.value })} placeholder="URL" /></div>
                 <div className="space-y-2"><Label>Portfólio</Label><Input value={form.portfolio || ""} onChange={e => setForm({ ...form, portfolio: e.target.value })} placeholder="URL" /></div>
