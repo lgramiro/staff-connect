@@ -11,16 +11,26 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
-  X
+  X,
+  TrendingUp,
+  Star,
+  AlertTriangle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
 import { useSlotsByEstabelecimento } from "@/hooks/queries/useSlots";
+import { useCandidaturasByEstabelecimento } from "@/hooks/queries/useCandidaturas";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const EstabelecimentoDashboard = () => {
   const { user, profile } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: estab } = useEstabelecimentoQuery(user?.id);
   
@@ -29,6 +39,7 @@ const EstabelecimentoDashboard = () => {
   const endDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${daysInMonth}`;
 
   const { data: slots = [], isLoading: loading } = useSlotsByEstabelecimento(estab?.id, { startDate, endDate });
+  const { data: cands = [] } = useCandidaturasByEstabelecimento(estab?.id);
 
   const stats = useMemo(() => {
     const abertos = slots.filter(s => s.status === "aberto").length;
@@ -36,6 +47,64 @@ const EstabelecimentoDashboard = () => {
     const pendentes = slots.filter(s => s.status === "reservado").length;
     return { abertos, confirmados, pendentes, total: slots.length };
   }, [slots]);
+
+  const fillRate = useMemo(() => {
+    if (stats.total === 0) return 0;
+    return Math.round((stats.confirmados / stats.total) * 100);
+  }, [stats]);
+
+  const topProfissionais = useMemo(() => {
+    if (!cands.length) return [];
+    
+    // Filtra candidaturas concluídas
+    const concluidas = cands.filter(c => c.status === "concluido" && c.profissionais);
+    
+    // Agrupa por profissional
+    const profMap: Record<string, { nome: string; score: number; count: number }> = {};
+    
+    concluidas.forEach(c => {
+      const profId = c.profissional_id;
+      if (!profMap[profId]) {
+        profMap[profId] = { 
+          nome: c.profissionais?.nome || "Profissional", 
+          score: c.profissionais?.trust_score || 0,
+          count: 0 
+        };
+      }
+      profMap[profId].count++;
+    });
+
+    // Converte para array e ordena
+    return Object.values(profMap)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
+  }, [cands]);
+
+  const slotsSemCandidatura = useMemo(() => {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+    return slots.filter(s => {
+      const createdAt = new Date(s.created_at);
+      const isOld = createdAt < twoDaysAgo;
+      const noCandidaturas = !s.candidaturas || s.candidaturas.length === 0;
+      return s.status === "aberto" && isOld && noCandidaturas;
+    });
+  }, [slots]);
+
+  const handleMarcarUrgente = async (slotId: string) => {
+    const { error } = await supabase
+      .from("slots")
+      .update({ urgente: true })
+      .eq("id", slotId);
+
+    if (error) {
+      toast.error("Erro ao marcar como urgente");
+    } else {
+      toast.success("Vaga marcada como urgente!");
+      queryClient.invalidateQueries({ queryKey: ["slots-estabelecimento"] });
+    }
+  };
 
   const slotsByDay = useMemo(() => {
     const byDay: Record<number, { count: number; status: string }> = {};
@@ -74,7 +143,6 @@ const EstabelecimentoDashboard = () => {
     { label: "Pendentes", value: stats.pendentes, icon: Clock, color: "bg-warning/10 text-warning" },
     { label: "Abertos", value: stats.abertos, icon: Users, color: "bg-info/10 text-info" },
   ];
-
 
   return (
     <EstabelecimentoLayout>
@@ -170,7 +238,7 @@ const EstabelecimentoDashboard = () => {
 
             {/* Day detail */}
             {selectedDaySlots !== null && (
-              <div className="bg-card rounded-xl p-6 border border-border">
+              <div className="bg-card rounded-xl p-6 border border-border animate-in fade-in slide-in-from-top-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-display text-lg font-semibold">
                     Slots do dia {selectedDay}/{currentMonth.getMonth() + 1}
@@ -203,6 +271,104 @@ const EstabelecimentoDashboard = () => {
                 )}
               </div>
             )}
+
+            {/* Novos cards e seções */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Card Taxa de preenchimento */}
+              <div className="bg-card rounded-xl p-6 border border-border flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                    </div>
+                    <h3 className="font-display font-semibold">Taxa de preenchimento</h3>
+                  </div>
+                  <div className="flex items-end justify-between mb-2">
+                    <p className="text-3xl font-bold">{fillRate}%</p>
+                    <p className="text-sm text-muted-foreground">{stats.confirmados} de {stats.total} slots</p>
+                  </div>
+                  <Progress value={fillRate} className="h-2" />
+                </div>
+                <p className="text-xs text-muted-foreground mt-4 italic">Meta sugerida: 85%</p>
+              </div>
+
+              {/* Card Profissionais favoritos */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-warning/10 rounded-lg">
+                    <Star className="w-5 h-5 text-warning" />
+                  </div>
+                  <h3 className="font-display font-semibold">Profissionais favoritos</h3>
+                </div>
+                {topProfissionais.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">Nenhum profissional recorrente ainda.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {topProfissionais.map((prof, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold">
+                            {prof.nome.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{prof.nome}</p>
+                            <p className="text-xs text-muted-foreground">{prof.count} trabalhos realizados</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-warning">
+                          <Star className="w-3 h-3 fill-current" />
+                          <span className="text-xs font-bold">{prof.score.toFixed(1)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Seção Slots sem candidatura */}
+            <div className="bg-card rounded-xl p-6 border border-border">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-destructive/10 rounded-lg">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                  </div>
+                  <h3 className="font-display font-semibold">Slots sem candidatura há +48h</h3>
+                </div>
+                <Badge variant="outline" className="text-xs">{slotsSemCandidatura.length} vago(s)</Badge>
+              </div>
+              
+              {slotsSemCandidatura.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-8 text-center border-2 border-dashed border-muted rounded-lg">
+                  Ótimo! Todos os seus slots antigos têm interessados.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {slotsSemCandidatura.map(s => (
+                    <div key={s.id} className="p-4 rounded-lg bg-muted/30 border border-border flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="font-semibold text-sm">{s.funcao}</p>
+                          {s.urgente && <Badge variant="destructive" className="text-[10px] h-4">Urgente</Badge>}
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-4">
+                          {new Date(s.data).toLocaleDateString()} • {s.horario_inicio}
+                        </p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant={s.urgente ? "ghost" : "outline-primary"} 
+                        className="w-full h-8 text-xs"
+                        onClick={() => handleMarcarUrgente(s.id)}
+                        disabled={s.urgente}
+                      >
+                        {s.urgente ? "Já está urgente" : "Marcar como urgente"}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
