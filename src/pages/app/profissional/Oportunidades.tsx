@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { ProfissionalLayout } from "@/components/layouts/ProfissionalLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,45 +8,44 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { MapPin, Clock, Calendar, DollarSign, Zap, AlertTriangle } from "lucide-react";
+import { useSlotsAbertos } from "@/hooks/queries/useSlots";
+import { useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
 
 const Oportunidades = () => {
   const { user } = useAuth();
   const { getFuncoes, getAvisoLegal } = useSettings();
   const { toast } = useToast();
-  const [slots, setSlots] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [profId, setProfId] = useState<string | null>(null);
   const [filters, setFilters] = useState({ cidade: "", funcao: "", data: "", valorMin: "" });
 
+  const { data: slots = [], isLoading: loading } = useSlotsAbertos(filters);
+  const criarCandidatura = useCriarCandidatura();
+
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      const { data: prof } = await supabase.from("profissionais").select("id").eq("user_id", user.id).single();
+    const loadProfId = async () => {
+      const { data: prof } = await supabase
+        .from("profissionais")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
       if (prof) setProfId(prof.id);
-
-      let query = supabase.from("slots").select("*, estabelecimentos(nome, cidade, endereco)").eq("status", "aberto").order("urgente", { ascending: false }).order("data", { ascending: true });
-
-      if (filters.cidade) query = query.ilike("estabelecimentos.cidade", `%${filters.cidade}%`);
-      if (filters.funcao) query = query.eq("funcao", filters.funcao);
-      if (filters.data) query = query.eq("data", filters.data);
-      if (filters.valorMin) query = query.gte("valor", parseFloat(filters.valorMin));
-
-      const { data } = await query;
-      setSlots(data || []);
-      setLoading(false);
     };
-    load();
-  }, [user, filters]);
+    loadProfId();
+  }, [user]);
 
   const handleCandidatura = async (slotId: string) => {
-    if (!profId) { toast({ title: "Complete seu cadastro primeiro.", variant: "destructive" }); return; }
-    const { error } = await supabase.from("candidaturas").insert({ slot_id: slotId, profissional_id: profId });
-    if (error) {
-      toast({ title: "Erro", description: error.message.includes("duplicate") ? "Você já se candidatou a esta vaga." : error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Candidatura enviada!" });
+    if (!profId) {
+      toast({ title: "Complete seu cadastro primeiro.", variant: "destructive" });
+      return;
     }
+    
+    criarCandidatura.mutate({
+      slot_id: slotId,
+      profissional_id: profId,
+    });
   };
+
 
   return (
     <ProfissionalLayout>
