@@ -202,7 +202,7 @@ const MinhasCandidaturas = () => {
               {groups.analise.length > 0 ? (
                 groups.analise.map(c => <CandidaturaCard key={c.id} c={c} />)
               ) : (
-                <EmptyState message="Nenhuma candidatura em análise no momento." />
+                <EmptyMsg message="Nenhuma candidatura em análise no momento." />
               )}
             </TabsContent>
 
@@ -210,7 +210,7 @@ const MinhasCandidaturas = () => {
               {groups.aprovadas.length > 0 ? (
                 groups.aprovadas.map(c => <CandidaturaCard key={c.id} c={c} />)
               ) : (
-                <EmptyState message="Você ainda não tem candidaturas aprovadas." />
+                <EmptyMsg message="Você ainda não tem candidaturas aprovadas." />
               )}
             </TabsContent>
 
@@ -218,7 +218,7 @@ const MinhasCandidaturas = () => {
               {groups.concluidas.length > 0 ? (
                 groups.concluidas.map(c => <CandidaturaCard key={c.id} c={c} />)
               ) : (
-                <EmptyState message="Nenhum trabalho concluído encontrado." />
+                <EmptyMsg message="Nenhum trabalho concluído encontrado." />
               )}
             </TabsContent>
 
@@ -226,7 +226,7 @@ const MinhasCandidaturas = () => {
               {groups.recusadas.length > 0 ? (
                 groups.recusadas.map(c => <CandidaturaCard key={c.id} c={c} />)
               ) : (
-                <EmptyState message="Nenhuma candidatura recusada." />
+                <EmptyMsg message="Nenhuma candidatura recusada." />
               )}
             </TabsContent>
           </Tabs>
