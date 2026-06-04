@@ -122,7 +122,7 @@ const Candidaturas = () => {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {prof?.funcoes?.map((f: string) => (
-                    <Badge key={f} variant="hero">{f}</Badge>
+                    <Badge key={f} variant="default">{f}</Badge>
                   ))}
                   {(!prof?.funcoes || prof.funcoes.length === 0) && <p className="text-sm text-muted-foreground">Não informadas</p>}
                 </div>
