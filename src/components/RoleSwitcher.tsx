@@ -22,7 +22,7 @@ export const RoleSwitcher = () => {
   const { userRoles, activeRole, setActiveRole } = useAuth();
   const navigate = useNavigate();
 
-  if (userRoles.length <= 1) return null;
+  if (userRoles.length < 1) return null;
 
   const handleSwitch = (role: AppRole) => {
     setActiveRole(role);

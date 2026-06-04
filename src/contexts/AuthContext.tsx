@@ -32,7 +32,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Normalize role from DB (may be uppercase) to lowercase AppRole
 const normalizeRole = (role: string | undefined | null): AppRole => {
   if (!role) return "profissional";
-  const lower = role.toLowerCase();
+  const lower = role.trim().toLowerCase();
   if (lower === "admin" || lower === "estabelecimento" || lower === "profissional") {
     return lower as AppRole;
   }
