@@ -11,7 +11,8 @@ import {
   User, 
   ChefHat,
   LogOut,
-  Bell
+  Bell,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
