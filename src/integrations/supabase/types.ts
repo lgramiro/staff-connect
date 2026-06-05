@@ -158,6 +158,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "candidaturas_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais_publicos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "candidaturas_slot_id_fkey"
             columns: ["slot_id"]
             isOneToOne: false
@@ -527,7 +534,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profissionais_publicos: {
+        Row: {
+          cidade: string | null
+          estado: string | null
+          foto_url: string | null
+          funcoes: string[] | null
+          id: string | null
+          nome: string | null
+          total_avaliacoes: number | null
+          trust_score: number | null
+        }
+        Insert: {
+          cidade?: string | null
+          estado?: string | null
+          foto_url?: string | null
+          funcoes?: string[] | null
+          id?: string | null
+          nome?: string | null
+          total_avaliacoes?: number | null
+          trust_score?: number | null
+        }
+        Update: {
+          cidade?: string | null
+          estado?: string | null
+          foto_url?: string | null
+          funcoes?: string[] | null
+          id?: string | null
+          nome?: string | null
+          total_avaliacoes?: number | null
+          trust_score?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_distance: {
