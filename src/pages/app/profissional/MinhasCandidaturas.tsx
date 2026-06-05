@@ -59,6 +59,22 @@ const MinhasCandidaturas = () => {
     }
   };
 
+  const handleFinalize = async (id: string, slotId: string) => {
+    atualizarCandidatura.mutate({ id, status: "concluida" });
+    updateSlotStatus.mutate({ id: slotId, status: "concluido" });
+    
+    const estabUserId = await getEstabelecimentoUserIdBySlot(slotId);
+    if (estabUserId) {
+      await criarNotificacao({
+        user_id: estabUserId,
+        titulo: "Serviço concluído pelo profissional",
+        mensagem: "O profissional marcou o serviço como concluído. Avalie o desempenho!",
+        tipo: "candidatura",
+        referencia_id: id,
+      });
+    }
+  };
+
   const groups = useMemo(() => {
     return {
       analise: candidaturas.filter(c => c.status === "enviada"),
@@ -134,8 +150,13 @@ const MinhasCandidaturas = () => {
             )}
 
             {c.status === "confirmada" && (
-              <Button variant="outline" className="w-full" disabled>
-                Confirmado
+              <Button 
+                variant="hero" 
+                className="w-full"
+                onClick={() => handleFinalize(c.id, c.slot_id)}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Concluir Serviço
               </Button>
             )}
 

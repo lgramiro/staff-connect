@@ -8,6 +8,7 @@ import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
 import { useSlotsByEstabelecimento, useUpdateSlotStatus } from "@/hooks/queries/useSlots";
 import { useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { criarNotificacao, getProfissionalUserId } from "@/lib/notificacoes";
 
 const Hoje = () => {
   const { user } = useAuth();
@@ -21,13 +22,24 @@ const Hoje = () => {
   const atualizarCandidatura = useAtualizarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();
 
-  const handlePresenca = async (candidaturaId: string, slotId: string, compareceu: boolean) => {
+  const handlePresenca = async (candidaturaId: string, slotId: string, compareceu: boolean, profissionalId: string) => {
     const status = compareceu ? "concluida" : "nao_compareceu";
     
     atualizarCandidatura.mutate({ id: candidaturaId, status });
     
     if (compareceu) {
       updateSlotStatus.mutate({ id: slotId, status: "concluido" });
+      
+      const profUserId = await getProfissionalUserId(profissionalId);
+      if (profUserId) {
+        await criarNotificacao({
+          user_id: profUserId,
+          titulo: "Serviço concluído! 🎉",
+          mensagem: "O estabelecimento confirmou sua presença. Avalie sua experiência!",
+          tipo: "candidatura",
+          referencia_id: candidaturaId,
+        });
+      }
     }
     
     toast({ title: compareceu ? "Presença confirmada!" : "Não comparecimento registrado." });
@@ -64,10 +76,10 @@ const Hoje = () => {
                           <Phone className="w-4 h-4" />
                         </Button>
                       )}
-                      <Button size="sm" variant="hero" onClick={() => handlePresenca(c.id, slot.id, true)}>
+                      <Button size="sm" variant="hero" onClick={() => handlePresenca(c.id, slot.id, true, c.profissional_id)}>
                         <CheckCircle2 className="w-4 h-4 mr-1" />Compareceu
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handlePresenca(c.id, slot.id, false)}>
+                      <Button size="sm" variant="ghost" onClick={() => handlePresenca(c.id, slot.id, false, c.profissional_id)}>
                         <XCircle className="w-4 h-4 mr-1" />Faltou
                       </Button>
                     </div>
