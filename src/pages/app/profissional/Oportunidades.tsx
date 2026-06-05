@@ -20,6 +20,7 @@ const Oportunidades = () => {
   const { getFuncoes, getAvisoLegal } = useSettings();
   const { toast } = useToast();
   const [profId, setProfId] = useState<string | null>(null);
+  const [minhasCandidaturasIds, setMinhasCandidaturasIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({ cidade: "", funcao: "", data: "", valorMin: "" });
 
   const { data: slots = [], isLoading: loading } = useSlotsAbertos(filters);
@@ -27,15 +28,27 @@ const Oportunidades = () => {
 
   useEffect(() => {
     if (!user) return;
-    const loadProfId = async () => {
+    const loadProfData = async () => {
       const { data: prof } = await supabase
         .from("profissionais")
         .select("id")
         .eq("user_id", user.id)
         .single();
-      if (prof) setProfId(prof.id);
+      
+      if (prof) {
+        setProfId(prof.id);
+        // Carrega candidaturas já feitas pelo profissional para desabilitar botões
+        const { data: cands } = await supabase
+          .from("candidaturas")
+          .select("slot_id")
+          .eq("profissional_id", prof.id);
+        
+        if (cands) {
+          setMinhasCandidaturasIds(new Set(cands.map(c => c.slot_id)));
+        }
+      }
     };
-    loadProfId();
+    loadProfData();
   }, [user]);
 
   const handleCandidatura = async (slotId: string) => {
