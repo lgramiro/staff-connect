@@ -64,10 +64,11 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <AuthProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <AuthProvider>
           <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center bg-background">
               <LoadingSpinner size="lg" text="Carregando..." />
