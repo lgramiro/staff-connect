@@ -74,6 +74,9 @@ const Oportunidades = () => {
               referencia_id: candidatura?.id,
             });
           }
+          }
+          // Atualiza o estado local para desabilitar o botão imediatamente
+          setMinhasCandidaturasIds(prev => new Set([...prev, slotId]));
         },
       }
     );
