@@ -38,7 +38,7 @@ const EstabelecimentoDashboard = () => {
   const [pendentesAvaliacao, setPendentesAvaliacao] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
-  const { data: estab } = useEstabelecimentoQuery(user?.id);
+  const { data: estab, isLoading: loadingEstab } = useEstabelecimentoQuery(user?.id);
   
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
   const startDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-01`;
@@ -68,7 +68,9 @@ const EstabelecimentoDashboard = () => {
     loadPendentes();
   }, [user, estab?.id]);
   
-  const loading = loadingSlots || loadingCands;
+  const loading = loadingSlots || loadingCands || loadingEstab;
+
+  if (loading) return null; // Prevent flickering on initial load
 
   const stats = useMemo(() => {
     const abertos = slots.filter(s => s.status === "aberto").length;
