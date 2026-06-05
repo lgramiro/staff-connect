@@ -15,15 +15,42 @@ import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notifica
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371; // Raio da Terra em km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
 const Oportunidades = () => {
   const { user } = useAuth();
   const { getFuncoes, getAvisoLegal } = useSettings();
   const { toast } = useToast();
   const [profId, setProfId] = useState<string | null>(null);
+  const [profLocation, setProfLocation] = useState<{lat: number, lng: number, raio: number} | null>(null);
   const [minhasCandidaturasIds, setMinhasCandidaturasIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({ cidade: "", funcao: "", data: "", valorMin: "" });
 
-  const { data: slots = [], isLoading: loading } = useSlotsAbertos(filters);
+  const { data: rawSlots = [], isLoading: loading } = useSlotsAbertos(filters);
+  
+  const slots = rawSlots.filter(slot => {
+    if (!profLocation || !slot.estabelecimentos?.latitude || !slot.estabelecimentos?.longitude) return true;
+    
+    const dist = calculateDistance(
+      profLocation.lat, 
+      profLocation.lng, 
+      slot.estabelecimentos.latitude, 
+      slot.estabelecimentos.longitude
+    );
+    
+    // Filtra apenas vagas dentro do raio de atuação do profissional
+    return dist <= (profLocation.raio || 50);
+  });
   const criarCandidatura = useCriarCandidatura();
 
   useEffect(() => {
@@ -31,12 +58,19 @@ const Oportunidades = () => {
     const loadProfData = async () => {
       const { data: prof } = await supabase
         .from("profissionais")
-        .select("id")
+        .select("id, latitude, longitude, raio_atuacao")
         .eq("user_id", user.id)
         .single();
       
       if (prof) {
         setProfId(prof.id);
+        if (prof.latitude && prof.longitude) {
+          setProfLocation({
+            lat: prof.latitude,
+            lng: prof.longitude,
+            raio: prof.raio_atuacao || 50
+          });
+        }
         // Carrega candidaturas já feitas pelo profissional para desabilitar botões
         const { data: cands } = await supabase
           .from("candidaturas")
