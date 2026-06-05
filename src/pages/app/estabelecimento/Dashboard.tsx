@@ -88,7 +88,7 @@ const EstabelecimentoDashboard = () => {
     if (!cands.length) return [];
     
     // Filtra candidaturas concluídas
-    const concluidas = cands.filter(c => c.status === "concluido" && c.profissionais);
+    const concluidas = cands.filter(c => c.status === "concluido" && c.profissionais_publicos);
     
     // Agrupa por profissional
     const profMap: Record<string, { nome: string; score: number; count: number }> = {};
@@ -97,8 +97,8 @@ const EstabelecimentoDashboard = () => {
       const profId = c.profissional_id;
       if (!profMap[profId]) {
         profMap[profId] = { 
-          nome: c.profissionais?.nome || "Profissional", 
-          score: c.profissionais?.trust_score || 0,
+          nome: c.profissionais_publicos?.nome || "Profissional", 
+          score: c.profissionais_publicos?.trust_score || 0,
           count: 0 
         };
       }
