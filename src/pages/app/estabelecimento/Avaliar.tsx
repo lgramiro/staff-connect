@@ -59,18 +59,56 @@ const Avaliar = () => {
         ) : (
           <div className="space-y-4">
             {pendentes.map(c => (
-              <div key={c.id} className="bg-card rounded-xl p-5 border border-border">
-                <p className="font-semibold">{c.profissionais?.nome}</p>
-                <p className="text-sm text-muted-foreground mb-3">{c.slots?.funcao} • {c.slots?.data}</p>
-                <div className="flex gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <Star key={n} className={`w-6 h-6 cursor-pointer ${(ratings[c.id]?.nota || 0) >= n ? "text-warning fill-warning" : "text-muted-foreground"}`}
-                      onClick={() => setRatings(prev => ({ ...prev, [c.id]: { ...prev[c.id], nota: n } }))} />
-                  ))}
+              <div key={c.id} className="bg-card rounded-xl p-5 border border-border shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                  <div>
+                    <p className="font-bold text-lg">{c.profissionais?.nome}</p>
+                    <p className="text-sm text-muted-foreground">{c.slots?.funcao} • {new Date(c.slots?.data).toLocaleDateString("pt-BR")}</p>
+                  </div>
                 </div>
-                <Textarea placeholder="Comentário (opcional)" value={ratings[c.id]?.comentario || ""}
-                  onChange={e => setRatings(prev => ({ ...prev, [c.id]: { ...prev[c.id], comentario: e.target.value } }))} className="mb-3" />
-                <Button variant="hero" onClick={() => handleRate(c)}>Enviar Avaliação</Button>
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium mb-2">Como foi o desempenho do profissional?</p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setRatings(prev => ({ ...prev, [c.id]: { ...prev[c.id], nota: n } }))}
+                          className="focus:outline-none transition-transform active:scale-95"
+                        >
+                          <Star 
+                            className={`w-8 h-8 ${
+                              (ratings[c.id]?.nota || 0) >= n 
+                                ? "text-warning fill-warning" 
+                                : "text-muted-foreground/30"
+                            }`} 
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Algum comentário sobre o serviço?</p>
+                    <Textarea 
+                      placeholder="Ex: Chegou no horário, muito proativo..." 
+                      value={ratings[c.id]?.comentario || ""}
+                      onChange={e => setRatings(prev => ({ ...prev, [c.id]: { ...prev[c.id], comentario: e.target.value } }))} 
+                      className="resize-none"
+                    />
+                  </div>
+
+                  <Button 
+                    className="w-full md:w-auto"
+                    variant="hero" 
+                    onClick={() => handleRate(c)}
+                    disabled={!ratings[c.id]?.nota}
+                  >
+                    Enviar Avaliação
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
