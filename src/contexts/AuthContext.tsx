@@ -127,12 +127,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        const prof = await fetchProfile(session.user.id);
-        const roles = await fetchUserRoles(session.user.id);
+        // Fetch profile and roles in parallel
+        const [prof, roles] = await Promise.all([
+          fetchProfile(session.user.id),
+          fetchUserRoles(session.user.id)
+        ]);
         
         const effectiveRoles = roles.length > 0 ? roles : (prof ? [prof.role] : []);
         if (roles.length === 0 && prof) {
@@ -147,7 +152,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       setLoading(false);
-    });
+    };
+
+    initAuth();
 
     return () => subscription.unsubscribe();
   }, []);
