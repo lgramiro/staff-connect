@@ -53,10 +53,11 @@ const AdminLogs = lazy(() => import("./pages/admin/AdminLogs"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
+      staleTime: 1000 * 60, // 1 minute
+      gcTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   },
 });
@@ -68,7 +69,7 @@ const App = () => (
         <AuthProvider>
           <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center bg-background">
-              <LoadingSpinner size="lg" text="Carregando página..." />
+              <LoadingSpinner size="lg" text="Carregando..." />
             </div>
           }>
             <Routes>
