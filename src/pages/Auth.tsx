@@ -53,7 +53,15 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, signUp, resetPassword, setActiveRole } = useAuth();
+  const { 
+    session, 
+    loading: authLoading, 
+    signIn, 
+    signUp, 
+    resetPassword, 
+    setActiveRole, 
+    userRoles 
+  } = useAuth();
 
   const initialMode = (searchParams.get("mode") as AuthMode) || "login";
   const initialRole = (searchParams.get("role") as UserRole) || "profissional";
@@ -66,6 +74,22 @@ const Auth = () => {
   const [redirecting, setRedirecting] = useState(false);
   const [redirectError, setRedirectError] = useState<string | null>(null);
   const timeoutRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!authLoading && session) {
+      if (userRoles.length === 1) {
+        const role = userRoles[0];
+        const roleRoutes: Record<string, string> = {
+          admin: "/admin",
+          profissional: "/app/profissional",
+          estabelecimento: "/app/estabelecimento",
+        };
+        navigate(roleRoutes[role] || "/app/profissional", { replace: true });
+      } else if (userRoles.length > 1) {
+        navigate("/escolher-perfil", { replace: true });
+      }
+    }
+  }, [session, authLoading, userRoles, navigate]);
 
   useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
 

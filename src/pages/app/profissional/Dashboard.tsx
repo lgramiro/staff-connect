@@ -9,6 +9,7 @@ import { useProfissionalQuery } from "@/hooks/queries/useProfissional";
 import { useUpdateSlotStatus } from "@/hooks/queries/useSlots";
 import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 
@@ -20,7 +21,7 @@ const ProfissionalDashboard = () => {
   const { data: prof } = useProfissionalQuery(user?.id);
   const { data: cands = [], isLoading: loading } = useCandidaturasByProfissional(prof?.id);
   
-  if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div></ProfissionalLayout>;
+  if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><LoadingSpinner text="Carregando seu dashboard..." /></div></ProfissionalLayout>;
   
   const atualizarCandidatura = useAtualizarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();

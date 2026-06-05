@@ -48,38 +48,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [activeRole, setActiveRoleState] = useState<AppRole | null>(null);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
-    if (!error && data) {
-      // Normalize the profile data - handle potential column name differences
-      const normalizedProfile: Profile = {
-        id: data.id,
-        nome: (data as any).nome || (data as any).full_name || "",
-        email: (data as any).email || "",
-        role: normalizeRole(data.role),
-        is_blocked: data.is_blocked || false,
-        avatar_url: (data as any).avatar_url || null,
-      };
-      console.log("[AuthContext] Profile loaded:", normalizedProfile);
-      setProfile(normalizedProfile);
-      return normalizedProfile;
+      if (!error && data) {
+        const normalizedProfile: Profile = {
+          id: data.id,
+          nome: (data as any).nome || (data as any).full_name || "",
+          email: (data as any).email || "",
+          role: normalizeRole(data.role),
+          is_blocked: data.is_blocked || false,
+          avatar_url: (data as any).avatar_url || null,
+        };
+        return normalizedProfile;
+      }
+    } catch (err) {
+      console.error("[AuthContext] Error fetching profile:", err);
     }
     return null;
   };
 
   const fetchUserRoles = async (userId: string): Promise<AppRole[]> => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-    const roles = (data || []).map((r: any) => normalizeRole(r.role));
-    console.log("[AuthContext] User roles from user_roles table:", roles);
-    setUserRoles(roles);
-    return roles;
+    try {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      return (data || []).map((r: any) => normalizeRole(r.role));
+    } catch (err) {
+      console.error("[AuthContext] Error fetching roles:", err);
+      return [];
+    }
   };
 
   const setActiveRole = (role: AppRole) => {
@@ -88,75 +91,67 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    let mounted = true;
 
-        if (session?.user) {
-          // Use setTimeout to avoid blocking the auth state change
-          setTimeout(async () => {
-            const prof = await fetchProfile(session.user.id);
-            const roles = await fetchUserRoles(session.user.id);
-            
-            // If user_roles is empty, use profile.role as fallback
-            const effectiveRoles = roles.length > 0 ? roles : (prof ? [prof.role] : []);
-            if (roles.length === 0 && prof) {
-              setUserRoles([prof.role]);
-            }
-
-            const savedRole = localStorage.getItem("temstaff_active_role") as AppRole | null;
-            if (savedRole && effectiveRoles.includes(savedRole)) {
-              setActiveRoleState(savedRole);
-            } else if (effectiveRoles.length === 1) {
-              setActiveRoleState(effectiveRoles[0]);
-            }
-          }, 0);
-        } else {
-          setProfile(null);
-          setUserRoles([]);
-          setActiveRoleState(null);
-        }
-
-        if (event === "SIGNED_OUT") {
-          setProfile(null);
-          setUserRoles([]);
-          setActiveRoleState(null);
-          localStorage.removeItem("temstaff_active_role");
-        }
-      }
-    );
-
-    const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
+    const initialize = async (currSession: Session | null) => {
+      if (!mounted) return;
       
-      if (session?.user) {
-        // Fetch profile and roles in parallel
+      setSession(currSession);
+      const currUser = currSession?.user ?? null;
+      setUser(currUser);
+
+      if (currUser) {
         const [prof, roles] = await Promise.all([
-          fetchProfile(session.user.id),
-          fetchUserRoles(session.user.id)
+          fetchProfile(currUser.id),
+          fetchUserRoles(currUser.id)
         ]);
+
+        if (!mounted) return;
+
+        if (prof) setProfile(prof);
         
         const effectiveRoles = roles.length > 0 ? roles : (prof ? [prof.role] : []);
-        if (roles.length === 0 && prof) {
-          setUserRoles([prof.role]);
-        }
+        setUserRoles(effectiveRoles);
 
         const savedRole = localStorage.getItem("temstaff_active_role") as AppRole | null;
         if (savedRole && effectiveRoles.includes(savedRole)) {
           setActiveRoleState(savedRole);
-        } else if (effectiveRoles.length === 1) {
+        } else if (effectiveRoles.length > 0) {
           setActiveRoleState(effectiveRoles[0]);
         }
+      } else {
+        setProfile(null);
+        setUserRoles([]);
+        setActiveRoleState(null);
       }
+      
       setLoading(false);
     };
 
-    initAuth();
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      initialize(session);
+    });
 
-    return () => subscription.unsubscribe();
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[AuthContext] Auth event:", event);
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        initialize(session);
+      } else if (event === "SIGNED_OUT") {
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setUserRoles([]);
+        setActiveRoleState(null);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, nome: string, role: AppRole) => {
