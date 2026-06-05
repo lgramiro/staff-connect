@@ -53,21 +53,16 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, signUp, resetPassword, setActiveRole } = useAuth();
-
-  const initialMode = (searchParams.get("mode") as AuthMode) || "login";
-  const initialRole = (searchParams.get("role") as UserRole) || "profissional";
-  const isBlocked = searchParams.get("blocked") === "true";
-
-  const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [role, setRole] = useState<UserRole>(initialRole);
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
-  const [redirectError, setRedirectError] = useState<string | null>(null);
-  const timeoutRef = useRef<any>(null);
-
-  const { session, loading: authLoading, signIn, signUp, resetPassword, setActiveRole, activeRole, userRoles } = useAuth();
+  const { 
+    session, 
+    loading: authLoading, 
+    signIn, 
+    signUp, 
+    resetPassword, 
+    setActiveRole, 
+    activeRole, 
+    userRoles 
+  } = useAuth();
 
   useEffect(() => {
     if (!authLoading && session) {
