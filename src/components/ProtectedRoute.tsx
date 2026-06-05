@@ -10,7 +10,11 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   const { session, profile, loading, activeRole, userRoles } = useAuth();
 
   if (loading) {
-    return null; // Don't show anything during initial load to prevent flicker
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
   }
 
   if (!session) {
