@@ -127,7 +127,13 @@ const Oportunidades = () => {
                   <div className="flex items-center gap-2"><Clock className="w-4 h-4" />{slot.horario_inicio} - {slot.horario_fim}</div>
                   <div className="flex items-center gap-2"><DollarSign className="w-4 h-4" />{slot.quantidade} vaga(s)</div>
                 </div>
-                <Button variant="hero" className="w-full" onClick={() => handleCandidatura(slot.id)}>Candidatar-se</Button>
+                {minhasCandidaturasIds.has(slot.id) ? (
+                  <Button variant="secondary" className="w-full bg-muted text-muted-foreground cursor-default" disabled>
+                    <Clock className="w-4 h-4 mr-2" /> Aguardando aprovação
+                  </Button>
+                ) : (
+                  <Button variant="hero" className="w-full" onClick={() => handleCandidatura(slot.id)}>Candidatar-se</Button>
+                )}
               </div>
             ))}
           </div>
