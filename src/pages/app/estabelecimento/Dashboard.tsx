@@ -43,8 +43,10 @@ const EstabelecimentoDashboard = () => {
   const startDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-01`;
   const endDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${daysInMonth}`;
 
-  const { data: slots = [], isLoading: loading } = useSlotsByEstabelecimento(estab?.id, { startDate, endDate });
-  const { data: cands = [] } = useCandidaturasByEstabelecimento(estab?.id);
+  const { data: slots = [], isLoading: loadingSlots } = useSlotsByEstabelecimento(estab?.id, { startDate, endDate });
+  const { data: cands = [], isLoading: loadingCands } = useCandidaturasByEstabelecimento(estab?.id);
+  
+  const loading = loadingSlots || loadingCands;
 
   const stats = useMemo(() => {
     const abertos = slots.filter(s => s.status === "aberto").length;
