@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
+import { ProfissionalLayout } from "@/components/layouts/ProfissionalLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,7 @@ import { Star } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
-const Avaliar = () => {
+const ProfissionalAvaliacoes = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [pendentes, setPendentes] = useState<any[]>([]);
@@ -19,15 +19,26 @@ const Avaliar = () => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: estab } = await supabase.from("estabelecimentos").select("id").eq("user_id", user.id).single();
-      if (!estab) { setLoading(false); return; }
-      const { data: slots } = await supabase.from("slots").select("id").eq("estabelecimento_id", estab.id);
-      if (!slots?.length) { setLoading(false); return; }
-      const { data } = await supabase.from("candidaturas").select("*, profissionais(*), slots(*)").in("slot_id", slots.map(s => s.id)).eq("status", "concluida");
-      // Filter out already rated
-      const { data: avaliacoes } = await supabase.from("avaliacoes").select("candidatura_id").eq("avaliador_id", user.id);
+      // 1. Pegar candidaturas concluídas do profissional
+      const { data: prof } = await supabase.from("profissionais").select("id").eq("user_id", user.id).single();
+      if (!prof) { setLoading(false); return; }
+
+      const { data: cands } = await supabase
+        .from("candidaturas")
+        .select("*, slots(*, estabelecimentos(*))")
+        .eq("profissional_id", prof.id)
+        .eq("status", "concluida");
+
+      if (!cands?.length) { setLoading(false); return; }
+
+      // 2. Filtrar as que já foram avaliadas pelo profissional (avaliador_id = user.id)
+      const { data: avaliacoes } = await supabase
+        .from("avaliacoes")
+        .select("candidatura_id")
+        .eq("avaliador_id", user.id);
+      
       const ratedIds = new Set((avaliacoes || []).map(a => a.candidatura_id));
-      setPendentes((data || []).filter(c => !ratedIds.has(c.id)));
+      setPendentes((cands || []).filter(c => !ratedIds.has(c.id)));
       setLoading(false);
     };
     load();
@@ -35,41 +46,56 @@ const Avaliar = () => {
 
   const handleRate = async (candidatura: any) => {
     const r = ratings[candidatura.id];
-    if (!r || !r.nota) { toast({ title: "Selecione uma nota", variant: "destructive" }); return; }
+    if (!r || !r.nota) { 
+      toast({ title: "Selecione uma nota", variant: "destructive" }); 
+      return; 
+    }
+    
     const { error } = await supabase.from("avaliacoes").insert({
       candidatura_id: candidatura.id,
       avaliador_id: user!.id,
-      avaliado_id: candidatura.profissionais.user_id,
+      avaliado_id: candidatura.slots.estabelecimentos.user_id,
       nota: r.nota,
       comentario: r.comentario || null,
     });
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+
+    if (error) { 
+      toast({ title: "Erro", description: error.message, variant: "destructive" }); 
+      return; 
+    }
+
     toast({ title: "Avaliação enviada!" });
     setPendentes(prev => prev.filter(p => p.id !== candidatura.id));
   };
 
   return (
-    <EstabelecimentoLayout>
+    <ProfissionalLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-2xl font-bold">Avaliar Profissionais</h1>
+        <h1 className="font-display text-2xl font-bold">Avaliar Estabelecimentos</h1>
+        <p className="text-muted-foreground">Avalie sua experiência nos estabelecimentos onde você trabalhou.</p>
+        
         {loading ? (
           <LoadingSpinner />
         ) : pendentes.length === 0 ? (
-          <EmptyState icon={Star} title="Nenhuma avaliação pendente" description="Você está em dia! Avaliações aparecerão aqui após cada trabalho concluído." />
+          <EmptyState 
+            icon={Star} 
+            title="Nenhuma avaliação pendente" 
+            description="Você está em dia! Avaliações aparecerão aqui após cada trabalho concluído." 
+          />
         ) : (
           <div className="space-y-4">
             {pendentes.map(c => (
               <div key={c.id} className="bg-card rounded-xl p-5 border border-border shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                   <div>
-                    <p className="font-bold text-lg">{c.profissionais?.nome}</p>
+                    <p className="font-bold text-lg">{c.slots?.estabelecimentos?.nome}</p>
                     <p className="text-sm text-muted-foreground">{c.slots?.funcao} • {new Date(c.slots?.data).toLocaleDateString("pt-BR")}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium mb-2">Como foi o desempenho do profissional?</p>
+                    <p className="text-sm font-medium mb-2">Como foi sua experiência?</p>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map(n => (
                         <button
@@ -91,9 +117,9 @@ const Avaliar = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Algum comentário sobre o serviço?</p>
+                    <p className="text-sm font-medium">Algum comentário adicional?</p>
                     <Textarea 
-                      placeholder="Ex: Chegou no horário, muito proativo..." 
+                      placeholder="Conte-nos como foi trabalhar lá..." 
                       value={ratings[c.id]?.comentario || ""}
                       onChange={e => setRatings(prev => ({ ...prev, [c.id]: { ...prev[c.id], comentario: e.target.value } }))} 
                       className="resize-none"
@@ -114,8 +140,8 @@ const Avaliar = () => {
           </div>
         )}
       </div>
-    </EstabelecimentoLayout>
+    </ProfissionalLayout>
   );
 };
 
-export default Avaliar;
+export default ProfissionalAvaliacoes;

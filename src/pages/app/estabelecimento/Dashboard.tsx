@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +35,7 @@ const EstabelecimentoDashboard = () => {
   const { user, profile } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [pendentesAvaliacao, setPendentesAvaliacao] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
   const { data: estab } = useEstabelecimentoQuery(user?.id);
@@ -45,6 +46,27 @@ const EstabelecimentoDashboard = () => {
 
   const { data: slots = [], isLoading: loadingSlots } = useSlotsByEstabelecimento(estab?.id, { startDate, endDate });
   const { data: cands = [], isLoading: loadingCands } = useCandidaturasByEstabelecimento(estab?.id);
+
+  // Buscar avaliações pendentes para mostrar alerta no dashboard
+  useEffect(() => {
+    if (!user || !estab?.id) return;
+    const loadPendentes = async () => {
+      const { data: concluida } = await supabase
+        .from("candidaturas")
+        .select("id")
+        .eq("status", "concluida");
+      
+      const { data: avaliacoes } = await supabase
+        .from("avaliacoes")
+        .select("candidatura_id")
+        .eq("avaliador_id", user.id);
+      
+      const ratedIds = new Set((avaliacoes || []).map(a => a.candidatura_id));
+      const filtered = (concluida || []).filter(c => !ratedIds.has(c.id));
+      setPendentesAvaliacao(filtered);
+    };
+    loadPendentes();
+  }, [user, estab?.id]);
   
   const loading = loadingSlots || loadingCands;
 
@@ -332,6 +354,27 @@ const EstabelecimentoDashboard = () => {
                 )}
               </div>
             </div>
+
+            {/* Seção de Avaliações Pendentes */}
+            {pendentesAvaliacao.length > 0 && (
+              <div className="bg-card rounded-xl p-6 border border-border shadow-sm animate-pulse-soft">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-warning/10 rounded-lg">
+                      <Star className="w-5 h-5 text-warning" />
+                    </div>
+                    <h3 className="font-display font-semibold">Avaliações Pendentes</h3>
+                  </div>
+                  <Badge variant="secondary">{pendentesAvaliacao.length}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Você tem serviços concluídos aguardando sua avaliação sobre os profissionais.
+                </p>
+                <Button variant="hero" asChild className="w-full">
+                  <Link to="/app/estabelecimento/avaliar">Avaliar Profissionais Agora</Link>
+                </Button>
+              </div>
+            )}
 
             {/* Seção Slots sem candidatura */}
             <div className="bg-card rounded-xl p-6 border border-border">

@@ -11,7 +11,8 @@ import {
   User, 
   ChefHat,
   LogOut,
-  Bell
+  Bell,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +25,7 @@ const navItems = [
   { icon: Search, label: "Oportunidades", path: "/app/profissional/oportunidades" },
   { icon: FileText, label: "Candidaturas", path: "/app/profissional/candidaturas" },
   { icon: User, label: "Perfil", path: "/app/profissional/perfil" },
+  { icon: Star, label: "Avaliar", path: "/app/profissional/avaliacoes" },
 ];
 
 export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {

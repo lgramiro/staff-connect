@@ -165,9 +165,11 @@ const MinhasCandidaturas = () => {
                 <Badge variant="outline" className={jaAvaliou ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-blue-50 text-blue-700 border-blue-200"}>
                   {jaAvaliou ? "Avaliação enviada" : "Pendente de avaliação"}
                 </Badge>
-                <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                  <Link to="/app/profissional/avaliacoes">Ir para avaliações</Link>
-                </Button>
+                {!jaAvaliou && (
+                  <Button variant="hero" size="sm" asChild className="w-full">
+                    <Link to="/app/profissional/avaliacoes">Avaliar Agora</Link>
+                  </Button>
+                )}
               </div>
             )}
           </div>
