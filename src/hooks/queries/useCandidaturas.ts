@@ -43,7 +43,7 @@ export const useCandidaturasByEstabelecimento = (estabelecimentoId: string | und
             *,
             estabelecimentos!inner (*)
           ),
-          profissionais:profissional_id (*)
+          profissionais_publicos:profissional_id (*)
         `)
         .eq("slots.estabelecimento_id", estabelecimentoId);
 
