@@ -47,6 +47,7 @@ export const useSlotsByEstabelecimento = (estabelecimentoId: string | undefined,
     queryKey: ["slots-estabelecimento", estabelecimentoId, filters],
     queryFn: async () => {
       if (!estabelecimentoId) return [];
+      console.log("[useSlotsByEstabelecimento] Fetching for estabId:", estabelecimentoId, filters);
       let query = supabase
         .from("slots")
         .select("*, candidaturas(*, profissionais(*))")
@@ -62,6 +63,7 @@ export const useSlotsByEstabelecimento = (estabelecimentoId: string | undefined,
       return data || [];
     },
     enabled: !!estabelecimentoId,
+    staleTime: 1000 * 60 * 2, // 2 minutes (slots can change)
   });
 };
 

@@ -34,7 +34,7 @@ export const useCandidaturasByEstabelecimento = (estabelecimentoId: string | und
     queryKey: ["candidaturas", "estabelecimento", estabelecimentoId],
     queryFn: async () => {
       if (!estabelecimentoId) return [];
-
+      console.log("[useCandidaturasByEstabelecimento] Fetching for estabId:", estabelecimentoId);
       const { data, error } = await supabase
         .from("candidaturas")
         .select(`
@@ -54,6 +54,7 @@ export const useCandidaturasByEstabelecimento = (estabelecimentoId: string | und
       return data;
     },
     enabled: !!estabelecimentoId,
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 };
 
