@@ -20,6 +20,7 @@ const Oportunidades = () => {
   const { getFuncoes, getAvisoLegal } = useSettings();
   const { toast } = useToast();
   const [profId, setProfId] = useState<string | null>(null);
+  const [minhasCandidaturasIds, setMinhasCandidaturasIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({ cidade: "", funcao: "", data: "", valorMin: "" });
 
   const { data: slots = [], isLoading: loading } = useSlotsAbertos(filters);
@@ -27,15 +28,27 @@ const Oportunidades = () => {
 
   useEffect(() => {
     if (!user) return;
-    const loadProfId = async () => {
+    const loadProfData = async () => {
       const { data: prof } = await supabase
         .from("profissionais")
         .select("id")
         .eq("user_id", user.id)
         .single();
-      if (prof) setProfId(prof.id);
+      
+      if (prof) {
+        setProfId(prof.id);
+        // Carrega candidaturas já feitas pelo profissional para desabilitar botões
+        const { data: cands } = await supabase
+          .from("candidaturas")
+          .select("slot_id")
+          .eq("profissional_id", prof.id);
+        
+        if (cands) {
+          setMinhasCandidaturasIds(new Set(cands.map(c => c.slot_id)));
+        }
+      }
     };
-    loadProfId();
+    loadProfData();
   }, [user]);
 
   const handleCandidatura = async (slotId: string) => {
@@ -61,6 +74,8 @@ const Oportunidades = () => {
               referencia_id: candidatura?.id,
             });
           }
+          // Atualiza o estado local para desabilitar o botão imediatamente
+          setMinhasCandidaturasIds(prev => new Set([...prev, slotId]));
         },
       }
     );
@@ -112,7 +127,13 @@ const Oportunidades = () => {
                   <div className="flex items-center gap-2"><Clock className="w-4 h-4" />{slot.horario_inicio} - {slot.horario_fim}</div>
                   <div className="flex items-center gap-2"><DollarSign className="w-4 h-4" />{slot.quantidade} vaga(s)</div>
                 </div>
-                <Button variant="hero" className="w-full" onClick={() => handleCandidatura(slot.id)}>Candidatar-se</Button>
+                {minhasCandidaturasIds.has(slot.id) ? (
+                  <Button variant="secondary" className="w-full bg-muted text-muted-foreground cursor-default" disabled>
+                    <Clock className="w-4 h-4 mr-2" /> Aguardando aprovação
+                  </Button>
+                ) : (
+                  <Button variant="hero" className="w-full" onClick={() => handleCandidatura(slot.id)}>Candidatar-se</Button>
+                )}
               </div>
             ))}
           </div>
