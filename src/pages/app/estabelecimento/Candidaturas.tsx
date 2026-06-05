@@ -39,6 +39,16 @@ const Candidaturas = () => {
       }
     } else if (status === "concluida") {
       updateSlotStatus.mutate({ id: slotId, status: "concluido" });
+      const profUserId = await getProfissionalUserId(profissionalId);
+      if (profUserId) {
+        await criarNotificacao({
+          user_id: profUserId,
+          titulo: "Serviço concluído! 🎉",
+          mensagem: "O estabelecimento finalizou seu serviço. Avalie sua experiência!",
+          tipo: "candidatura",
+          referencia_id: id,
+        });
+      }
     }
   };
 
