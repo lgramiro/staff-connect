@@ -14,7 +14,7 @@ export const useSlotsAbertos = (filters: SlotsFilters = {}) => {
     queryFn: async () => {
       let query = supabase
         .from("slots")
-        .select("*, estabelecimentos(nome, cidade, endereco)")
+        .select("*, estabelecimentos(nome, cidade, endereco, latitude, longitude)")
         .eq("status", "aberto")
         .order("urgente", { ascending: false })
         .order("data", { ascending: true });
