@@ -37,6 +37,8 @@ const Candidaturas = () => {
           referencia_id: id,
         });
       }
+    } else if (status === "concluida") {
+      updateSlotStatus.mutate({ id: slotId, status: "concluido" });
     }
   };
 
@@ -227,6 +229,10 @@ const Candidaturas = () => {
                                   <XCircle className="w-4 h-4 mr-1" /> Recusar
                                 </Button>
                               </>
+                            ) : c.status === "confirmada" ? (
+                              <Button size="sm" variant="hero" onClick={() => handleAction(c.id, "concluida", c.slot_id, c.profissional_id)}>
+                                <CheckCircle2 className="w-4 h-4 mr-1" /> Finalizar Serviço
+                              </Button>
                             ) : (
                               <Badge className={
                                 c.status === "aprovada" ? "bg-success/20 text-success hover:bg-success/20 border-none" :

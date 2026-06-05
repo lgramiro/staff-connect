@@ -134,8 +134,16 @@ const MinhasCandidaturas = () => {
             )}
 
             {c.status === "confirmada" && (
-              <Button variant="outline" className="w-full" disabled>
-                Confirmado
+              <Button 
+                variant="hero" 
+                className="w-full"
+                onClick={() => {
+                  atualizarCandidatura.mutate({ id: c.id, status: "concluida" });
+                  updateSlotStatus.mutate({ id: c.slot_id, status: "concluido" });
+                }}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Concluir Serviço
               </Button>
             )}
 
