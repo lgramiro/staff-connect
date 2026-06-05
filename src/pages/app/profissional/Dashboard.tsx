@@ -20,7 +20,7 @@ const ProfissionalDashboard = () => {
   const { data: prof } = useProfissionalQuery(user?.id);
   const { data: cands = [], isLoading: loading } = useCandidaturasByProfissional(prof?.id);
   
-  if (loading) return null; // Prevent flickering on initial data fetch
+  if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div></ProfissionalLayout>;
   
   const atualizarCandidatura = useAtualizarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();
