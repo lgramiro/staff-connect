@@ -67,6 +67,24 @@ const Auth = () => {
   const [redirectError, setRedirectError] = useState<string | null>(null);
   const timeoutRef = useRef<any>(null);
 
+  const { session, loading: authLoading, signIn, signUp, resetPassword, setActiveRole, activeRole, userRoles } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && session) {
+      if (userRoles.length === 1) {
+        const role = userRoles[0];
+        const roleRoutes: Record<string, string> = {
+          admin: "/admin",
+          profissional: "/app/profissional",
+          estabelecimento: "/app/estabelecimento",
+        };
+        navigate(roleRoutes[role] || "/app/profissional", { replace: true });
+      } else if (userRoles.length > 1) {
+        navigate("/escolher-perfil", { replace: true });
+      }
+    }
+  }, [session, authLoading, userRoles, navigate]);
+
   useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
 
   const [formData, setFormData] = useState({ email: "", password: "", confirmPassword: "", nome: "" });
