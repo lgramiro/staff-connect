@@ -70,7 +70,7 @@ const EstabelecimentoDashboard = () => {
   
   const loading = loadingSlots || loadingCands || loadingEstab;
 
-  if (loading) return <EstabelecimentoLayout><div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div></EstabelecimentoLayout>;
+  if (loading) return <EstabelecimentoLayout><div className="flex justify-center py-12"><LoadingSpinner text="Carregando dashboard..." /></div></EstabelecimentoLayout>;
 
   const stats = useMemo(() => {
     const abertos = slots.filter(s => s.status === "aberto").length;
