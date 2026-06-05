@@ -230,7 +230,7 @@ const Candidaturas = () => {
                           <div className="flex items-center gap-2 ml-16 md:ml-0">
                             <ProfileDialog prof={c.profissionais} />
                             
-                            {c.status === "enviada" ? (
+                            {c.status === "enviada" && (
                               <>
                                 <Button size="sm" variant="hero" onClick={() => handleAction(c.id, "aprovada", c.slot_id, c.profissional_id)}>
                                   <CheckCircle2 className="w-4 h-4 mr-1" /> Aprovar
@@ -239,23 +239,23 @@ const Candidaturas = () => {
                                   <XCircle className="w-4 h-4 mr-1" /> Recusar
                                 </Button>
                               </>
-                            ) : c.status === "confirmada" ? (
+                            )}
+
+                            {(c.status === "aprovada" || c.status === "confirmada") && (
                               <Button size="sm" variant="hero" onClick={() => handleAction(c.id, "concluida", c.slot_id, c.profissional_id)}>
                                 <CheckCircle2 className="w-4 h-4 mr-1" /> Finalizar Serviço
                               </Button>
-                            ) : (
-                              <Badge className={
-                                c.status === "aprovada" ? "bg-success/20 text-success hover:bg-success/20 border-none" :
-                                c.status === "confirmada" ? "bg-primary/20 text-primary hover:bg-primary/20 border-none" :
-                                c.status === "concluida" ? "bg-blue-500/20 text-blue-500 hover:bg-blue-500/20 border-none" :
-                                c.status === "recusada" ? "bg-destructive/20 text-destructive hover:bg-destructive/20 border-none" :
-                                "bg-muted text-muted-foreground border-none"
-                              }>
-                                {c.status === "enviada" ? "Pendente" : 
-                                 c.status === "aprovada" ? "Aprovada" :
-                                 c.status === "confirmada" ? "Confirmada" :
-                                 c.status === "concluida" ? "Concluída" : 
-                                 c.status === "recusada" ? "Recusada" : c.status}
+                            )}
+
+                            {c.status === "concluida" && (
+                              <Badge className="bg-blue-500/20 text-blue-500 hover:bg-blue-500/20 border-none">
+                                Concluída
+                              </Badge>
+                            )}
+
+                            {c.status === "recusada" && (
+                              <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/20 border-none">
+                                Recusada
                               </Badge>
                             )}
                           </div>
