@@ -60,9 +60,20 @@ const Auth = () => {
     signUp, 
     resetPassword, 
     setActiveRole, 
-    activeRole, 
     userRoles 
   } = useAuth();
+
+  const initialMode = (searchParams.get("mode") as AuthMode) || "login";
+  const initialRole = (searchParams.get("role") as UserRole) || "profissional";
+  const isBlocked = searchParams.get("blocked") === "true";
+
+  const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [role, setRole] = useState<UserRole>(initialRole);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const [redirectError, setRedirectError] = useState<string | null>(null);
+  const timeoutRef = useRef<any>(null);
 
   useEffect(() => {
     if (!authLoading && session) {
