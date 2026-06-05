@@ -188,12 +188,7 @@ const Auth = () => {
   };
 
   if (redirecting) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        <p className="text-muted-foreground">Redirecionando...</p>
-      </div>
-    );
+    return null; // Silent redirect
   }
 
   if (redirectError) {

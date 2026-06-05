@@ -20,6 +20,8 @@ const ProfissionalDashboard = () => {
   const { data: prof } = useProfissionalQuery(user?.id);
   const { data: cands = [], isLoading: loading } = useCandidaturasByProfissional(prof?.id);
   
+  if (loading) return null; // Prevent flickering on initial data fetch
+  
   const atualizarCandidatura = useAtualizarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();
 
