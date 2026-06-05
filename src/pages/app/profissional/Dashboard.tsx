@@ -9,6 +9,7 @@ import { useProfissionalQuery } from "@/hooks/queries/useProfissional";
 import { useUpdateSlotStatus } from "@/hooks/queries/useSlots";
 import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 
