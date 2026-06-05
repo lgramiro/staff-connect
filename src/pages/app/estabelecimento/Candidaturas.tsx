@@ -213,13 +213,13 @@ const Candidaturas = () => {
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                           <div className="flex items-center gap-4">
                             <Avatar className="w-12 h-12 border border-border">
-                              <AvatarImage src={c.profissionais?.foto_url} alt={c.profissionais?.nome} />
+                              <AvatarImage src={c.profissionais_publicos?.foto_url} alt={c.profissionais_publicos?.nome} />
                               <AvatarFallback><User className="w-6 h-6" /></AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="flex items-center gap-2 mb-1">
-                                <p className="font-bold text-lg leading-none">{c.profissionais?.nome || "Profissional"}</p>
-                                {renderStars(Number(c.profissionais?.trust_score || 0))}
+                                <p className="font-bold text-lg leading-none">{c.profissionais_publicos?.nome || "Profissional"}</p>
+                                {renderStars(Number(c.profissionais_publicos?.trust_score || 0))}
                               </div>
                               <p className="text-sm text-muted-foreground font-medium">
                                 {c.slots?.funcao} • {c.slots?.data} • {c.slots?.horario_inicio?.slice(0, 5)}-{c.slots?.horario_fim?.slice(0, 5)}
@@ -228,7 +228,7 @@ const Candidaturas = () => {
                           </div>
 
                           <div className="flex items-center gap-2 ml-16 md:ml-0">
-                            <ProfileDialog prof={c.profissionais} />
+                            <ProfileDialog prof={c.profissionais_publicos} />
                             
                             {c.status === "enviada" && (
                               <>

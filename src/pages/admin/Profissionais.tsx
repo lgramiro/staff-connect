@@ -10,7 +10,7 @@ const AdminProfissionais = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.from("profissionais").select("*").order("trust_score", { ascending: false }).limit(200).then(({ data }) => {
+    supabase.from("profissionais_publicos").select("*").order("trust_score", { ascending: false }).limit(200).then(({ data }) => {
       setProfissionais(data || []);
       setLoading(false);
     });

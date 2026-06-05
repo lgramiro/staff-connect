@@ -57,7 +57,7 @@ const Oportunidades = () => {
     if (!user) return;
     const loadProfData = async () => {
       const { data: prof } = await supabase
-        .from("profissionais")
+        .from("profissionais_publicos")
         .select("id, latitude, longitude, raio_atuacao")
         .eq("user_id", user.id)
         .single();
