@@ -1,5 +1,6 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,39 +9,41 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { session, profile, loading, activeRole, userRoles } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <LoadingSpinner size="lg" text="Verificando acesso..." />
       </div>
     );
   }
 
   if (!session) {
-    return <Navigate to="/auth?mode=login" replace />;
+    // Save the attempted location to redirect back after login
+    return <Navigate to={`/auth?mode=login&redirect=${location.pathname}`} replace />;
   }
 
   if (profile?.is_blocked) {
     return <Navigate to="/auth?mode=login&blocked=true" replace />;
   }
 
-  // For multi-role/master users: check if activeRole is allowed,
-  // but also allow access if user HAS the required role in their userRoles
+  // If roles are specified, check if user has permission
   if (allowedRoles) {
-    if (activeRole && allowedRoles.includes(activeRole)) {
-      return <>{children}</>;
-    }
-    // Check if user has any of the allowed roles (master user support)
-    const hasAllowedRole = userRoles.some((r) => allowedRoles.includes(r));
-    if (!hasAllowedRole) {
-      // Redirect to their active role's dashboard
-      const roleRoutes: Record<string, string> = {
-        admin: "/admin",
-        estabelecimento: "/app/estabelecimento",
-        profissional: "/app/profissional",
-      };
-      return <Navigate to={activeRole ? roleRoutes[activeRole] : "/escolher-perfil"} replace />;
+    const hasPermission = activeRole && allowedRoles.includes(activeRole);
+    const hasOneOfAllowedRoles = userRoles.some((r) => allowedRoles.includes(r));
+
+    if (!hasPermission && !hasOneOfAllowedRoles) {
+      // Redirect to their dashboard or profile picker
+      if (activeRole) {
+        const roleRoutes: Record<string, string> = {
+          admin: "/admin",
+          estabelecimento: "/app/estabelecimento",
+          profissional: "/app/profissional",
+        };
+        return <Navigate to={roleRoutes[activeRole]} replace />;
+      }
+      return <Navigate to="/escolher-perfil" replace />;
     }
   }
 
