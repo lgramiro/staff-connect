@@ -95,6 +95,7 @@ const MeuPerfil = () => {
       funcoes: form.funcoes,
       disponibilidade: form.disponibilidade,
       diaria_minima: parseFloat(form.diaria_minima) || 0,
+      raio_atuacao: parseInt(form.raio_atuacao) || 50,
       experiencia: form.experiencia || null,
       idiomas: form.idiomas || [],
       certificacoes: form.certificacoes || [],
@@ -162,6 +163,7 @@ const MeuPerfil = () => {
                 <div className="space-y-2"><Label>WhatsApp</Label><Input value={form.whatsapp || ""} onChange={e => setForm({ ...form, whatsapp: e.target.value })} /></div>
                 <div className="space-y-2"><Label>Cidade</Label><Input value={form.cidade || ""} onChange={e => setForm({ ...form, cidade: e.target.value })} /></div>
                 <div className="space-y-2"><Label>Estado</Label><Input value={form.estado || ""} onChange={e => setForm({ ...form, estado: e.target.value })} /></div>
+                <div className="space-y-2"><Label>Raio de Atuação (km)</Label><Input type="number" value={form.raio_atuacao || 50} onChange={e => setForm({ ...form, raio_atuacao: parseInt(e.target.value) })} /></div>
                 <div className="space-y-2"><Label>Diária mínima (R$)</Label><Input type="number" value={form.diaria_minima || ""} onChange={e => setForm({ ...form, diaria_minima: e.target.value })} /></div>
               </div>
               <div className="space-y-2"><Label>Experiência</Label><Textarea value={form.experiencia || ""} onChange={e => setForm({ ...form, experiencia: e.target.value })} /></div>
@@ -209,6 +211,7 @@ const MeuPerfil = () => {
               </div>
               {prof.experiencia && <div><h3 className="font-semibold mb-1">Experiência</h3><p className="text-sm text-muted-foreground">{prof.experiencia}</p></div>}
               <div><h3 className="font-semibold mb-1">Diária mínima</h3><p className="text-primary font-bold">R$ {Number(prof.diaria_minima).toFixed(2)}</p></div>
+              <div><h3 className="font-semibold mb-1">Raio de atuação</h3><p className="text-muted-foreground">{prof.raio_atuacao || 50} km</p></div>
               <div><h3 className="font-semibold mb-2">Disponibilidade</h3><div className="flex flex-wrap gap-2">{(prof.disponibilidade || []).map((d: string) => <Badge key={d} variant="outline">{d}</Badge>)}</div></div>
               <div className="flex gap-3 pt-2">
                 {prof.instagram && <Button variant="ghost" size="icon" onClick={() => window.open(`https://instagram.com/${prof.instagram.replace("@", "")}`, "_blank")}><Instagram className="w-5 h-5" /></Button>}

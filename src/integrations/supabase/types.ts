@@ -174,7 +174,9 @@ export type Database = {
           estado: string
           funcoes_utilizadas: string[] | null
           id: string
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           nome: string
           onboarding_completo: boolean
           responsavel: string
@@ -189,7 +191,9 @@ export type Database = {
           estado?: string
           funcoes_utilizadas?: string[] | null
           id?: string
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           nome?: string
           onboarding_completo?: boolean
           responsavel?: string
@@ -204,7 +208,9 @@ export type Database = {
           estado?: string
           funcoes_utilizadas?: string[] | null
           id?: string
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           nome?: string
           onboarding_completo?: boolean
           responsavel?: string
@@ -346,10 +352,13 @@ export type Database = {
           id: string
           idiomas: string[] | null
           instagram: string | null
+          latitude: number | null
           linkedin: string | null
+          longitude: number | null
           nome: string
           onboarding_completo: boolean
           portfolio: string | null
+          raio_atuacao: number | null
           total_avaliacoes: number
           trust_score: number
           updated_at: string
@@ -371,10 +380,13 @@ export type Database = {
           id?: string
           idiomas?: string[] | null
           instagram?: string | null
+          latitude?: number | null
           linkedin?: string | null
+          longitude?: number | null
           nome?: string
           onboarding_completo?: boolean
           portfolio?: string | null
+          raio_atuacao?: number | null
           total_avaliacoes?: number
           trust_score?: number
           updated_at?: string
@@ -396,10 +408,13 @@ export type Database = {
           id?: string
           idiomas?: string[] | null
           instagram?: string | null
+          latitude?: number | null
           linkedin?: string | null
+          longitude?: number | null
           nome?: string
           onboarding_completo?: boolean
           portfolio?: string | null
+          raio_atuacao?: number | null
           total_avaliacoes?: number
           trust_score?: number
           updated_at?: string
@@ -444,6 +459,7 @@ export type Database = {
           horario_inicio: string
           id: string
           quantidade: number
+          raio_notificacao: number | null
           status: string
           updated_at: string
           urgente: boolean
@@ -459,6 +475,7 @@ export type Database = {
           horario_inicio: string
           id?: string
           quantidade?: number
+          raio_notificacao?: number | null
           status?: string
           updated_at?: string
           urgente?: boolean
@@ -474,6 +491,7 @@ export type Database = {
           horario_inicio?: string
           id?: string
           quantidade?: number
+          raio_notificacao?: number | null
           status?: string
           updated_at?: string
           urgente?: boolean
@@ -512,6 +530,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_distance: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
       create_notificacao: {
         Args: {
           p_mensagem?: string

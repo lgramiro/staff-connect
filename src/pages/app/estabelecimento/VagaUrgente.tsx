@@ -26,8 +26,21 @@ const formSchema = z.object({
   horarioInicio: z.string().min(1, "Horário de início é obrigatório"),
   horarioFim: z.string().min(1, "Horário de fim é obrigatório"),
   valor: z.coerce.number().positive("O valor deve ser maior que 0"),
-  endereco: z.string().optional()
+  endereco: z.string().optional(),
+  raioNotificacao: z.coerce.number().min(1, "Mínimo 1km").default(50)
 });
+
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371; // Raio da Terra em km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
 
 const VagaUrgente = () => {
   const { user } = useAuth();
@@ -47,7 +60,8 @@ const VagaUrgente = () => {
       horarioInicio: "", 
       horarioFim: "", 
       valor: 0, 
-      endereco: ""
+      endereco: "",
+      raioNotificacao: 50
     }
   });
 
@@ -58,7 +72,7 @@ const VagaUrgente = () => {
     try {
       const { data: estab } = await supabase
         .from("estabelecimentos")
-        .select("id, endereco, nome")
+        .select("id, endereco, nome, latitude, longitude")
         .eq("user_id", user.id)
         .single();
 
@@ -81,27 +95,43 @@ const VagaUrgente = () => {
           valor: values.valor,
           endereco: values.endereco || estab.endereco,
           urgente: true,
+          raio_notificacao: values.raioNotificacao
         })
         .select()
         .single();
 
       if (slotError) throw slotError;
 
-      // 2. Buscar profissionais compatíveis
+      // 2. Buscar profissionais compatíveis por função e localização
       const { data: profissionais, error: prosError } = await supabase
         .from("profissionais")
-        .select("user_id")
+        .select("user_id, latitude, longitude, raio_atuacao")
         .eq("onboarding_completo", true)
         .contains("funcoes", [values.funcao]);
+      
+      // Filtragem por quilometragem (Haversine) no cliente para precisão
+      let filteredPros = profissionais || [];
+      if (estab.latitude && estab.longitude) {
+        filteredPros = (profissionais || []).filter(p => {
+          if (!p.latitude || !p.longitude) return false;
+          
+          // Calcula distância entre estabelecimento e profissional
+          const dist = calculateDistance(estab.latitude, estab.longitude, p.latitude, p.longitude);
+          
+          // O profissional recebe se a distância for menor que o raio da vaga 
+          // E menor que o raio que o profissional aceita trabalhar
+          return dist <= (values.raioNotificacao || 50) && dist <= (p.raio_atuacao || 50);
+        });
+      }
 
       if (prosError) {
         console.error("Erro ao buscar profissionais:", prosError);
       }
 
       let notifiedCount = 0;
-      if (profissionais && profissionais.length > 0) {
+      if (filteredPros.length > 0) {
         // 3. Notificar profissionais em paralelo
-        const notificationPromises = profissionais.map(p => 
+        const notificationPromises = filteredPros.map(p => 
           supabase.rpc('create_notificacao', {
             p_user_id: p.user_id,
             p_titulo: "🚨 Vaga Urgente disponível!",
@@ -153,6 +183,15 @@ const VagaUrgente = () => {
 
             <FormField control={form.control} name="valor" render={({ field }) => <FormItem><FormLabel>Valor (R$)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>} />
             <FormField control={form.control} name="endereco" render={({ field }) => <FormItem><FormLabel>Endereço (opcional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>} />
+            <FormField control={form.control} name="raioNotificacao" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Raio de Notificação ({field.value} km)</FormLabel>
+                <FormControl>
+                  <Input type="range" min="1" max="200" step="1" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
             <Button type="submit" variant="hero" className="w-full" disabled={saving}>{saving ? "Criando..." : "Publicar Vaga Urgente"}</Button>
           </form>
