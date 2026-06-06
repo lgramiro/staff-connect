@@ -12,6 +12,9 @@ import { useSettings } from "@/hooks/useSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Zap } from "lucide-react";
+import { useAssinatura } from "@/hooks/useAssinatura";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
+
 
 const formSchema = z.object({
   funcao: z.string().min(1, "Selecione a função"),
@@ -48,6 +51,9 @@ const VagaUrgente = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { podeCriarVaga, limiteVagas, plano } = useAssinatura();
+
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -67,7 +73,14 @@ const VagaUrgente = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) return;
+    
+    if (!podeCriarVaga()) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+
     setSaving(true);
+
 
     try {
       const { data: estab } = await supabase
@@ -197,7 +210,15 @@ const VagaUrgente = () => {
           </form>
         </Form>
       </div>
+      
+      <UpgradeDialog 
+        open={showUpgradeDialog} 
+        onOpenChange={setShowUpgradeDialog}
+        limite={limiteVagas()}
+        planoNome={plano?.nome || "Grátis"}
+      />
     </EstabelecimentoLayout>
+
   );
 };
 
