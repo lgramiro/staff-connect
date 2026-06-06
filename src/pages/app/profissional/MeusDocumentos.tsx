@@ -11,8 +11,10 @@ import {
   FileCheck, 
   Receipt,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  MessageCircle
 } from "lucide-react";
+import { BotaoWhatsApp } from "@/components/BotaoWhatsApp";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -266,6 +268,13 @@ const MeusDocumentos = () => {
                       <Download className="w-4 h-4 mr-2" /> Download
                     </a>
                   </Button>
+                  {doc.tipo === 'RECIBO' && doc.estabelecimento?.whatsapp && (
+                    <BotaoWhatsApp 
+                      telefone={doc.estabelecimento.whatsapp}
+                      mensagem={`Olá! Segue confirmação de recebimento referente ao serviço de ${doc.slot?.funcao} realizado em ${doc.slot?.data ? new Date(doc.slot.data).toLocaleDateString('pt-BR') : ''}. Documento gerado pelo Tem Staff.`}
+                      label="Enviar para Estab."
+                    />
+                  )}
                 </div>
               </div>
             ))}

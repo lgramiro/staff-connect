@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Zap } from "lucide-react";
 import { useAssinatura } from "@/hooks/useAssinatura";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
+import { AvisoLegal } from "@/components/AvisoLegal";
 
 
 const formSchema = z.object({
@@ -205,6 +206,10 @@ const VagaUrgente = () => {
                 <FormMessage />
               </FormItem>
             )} />
+
+            <div className="pt-2">
+              <AvisoLegal />
+            </div>
 
             <Button type="submit" variant="hero" className="w-full" disabled={saving}>{saving ? "Criando..." : "Publicar Vaga Urgente"}</Button>
           </form>
