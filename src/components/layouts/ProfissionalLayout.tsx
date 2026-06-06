@@ -12,7 +12,8 @@ import {
   ChefHat,
   LogOut,
   Bell,
-  Star
+  Star,
+  Trophy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +27,7 @@ const navItems = [
   { icon: FileText, label: "Candidaturas", path: "/app/profissional/candidaturas" },
   { icon: FileText, label: "Documentos", path: "/app/profissional/documentos" },
   { icon: User, label: "Perfil", path: "/app/profissional/perfil" },
+  { icon: Trophy, label: "Ranking", path: "/app/profissional/ranking" },
   { icon: Star, label: "Avaliar", path: "/app/profissional/avaliacoes" },
 ];
 
