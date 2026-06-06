@@ -23,8 +23,6 @@ const PlanosComparar = () => {
   const { vagasUsadasMes, limiteVagas, plano: activePlan, assinatura: activeSubscription } = useAssinatura();
 
   const [planos, setPlanos] = useState<any[]>([]);
-  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
-  const [assinatura, setAssinatura] = useState<{ inicio: string; fim: string | null } | null>(null);
   const [contatoUpgrade, setContatoUpgrade] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -32,29 +30,19 @@ const PlanosComparar = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [p, estab, setting] = await Promise.all([
+      const [p, setting] = await Promise.all([
         supabase.from("planos").select("*").eq("ativo", true).order("preco"),
-        supabase.from("estabelecimentos").select("id").eq("user_id", user!.id).maybeSingle(),
         supabase.from("settings").select("valor").eq("chave", "contato_upgrade").maybeSingle(),
       ]);
       setPlanos(p.data || []);
       setContatoUpgrade(setting.data?.valor || "");
-      if (estab.data) {
-        const { data: ass } = await supabase
-          .from("assinaturas")
-          .select("plano_id, inicio, fim")
-          .eq("estabelecimento_id", estab.data.id)
-          .eq("status", "ativa")
-          .maybeSingle();
-        if (ass) {
-          setCurrentPlan(ass.plano_id);
-          setAssinatura({ inicio: ass.inicio, fim: ass.fim });
-        }
-      }
       setLoading(false);
     };
-    if (user) load();
-  }, [user]);
+    load();
+  }, []);
+
+  const currentPlanId = activeSubscription?.plano_id;
+
 
   const Feature = ({ enabled }: { enabled: boolean }) =>
     enabled ? (
@@ -136,7 +124,7 @@ const PlanosComparar = () => {
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {planos.map((p, i) => {
               const isPopular = i === 1;
-              const isCurrent = p.id === currentPlan;
+              const isCurrent = p.id === currentPlanId;
               const isPago = Number(p.preco) > 0;
               return (
                 <div
