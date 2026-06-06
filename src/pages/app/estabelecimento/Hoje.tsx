@@ -3,7 +3,8 @@ import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayou
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Phone, CheckCircle2, XCircle, CalendarX, Star, AlertTriangle, ShieldCheck, AlertCircle } from "lucide-react";
+import { Phone, CheckCircle2, XCircle, CalendarX, Star, AlertTriangle, ShieldCheck, AlertCircle, MessageCircle } from "lucide-react";
+import { BotaoWhatsApp } from "@/components/BotaoWhatsApp";
 import { EmptyState } from "@/components/EmptyState";
 import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
 import { useSlotsByEstabelecimento, useUpdateSlotStatus } from "@/hooks/queries/useSlots";
@@ -201,14 +202,10 @@ const Hoje = () => {
 
                         <div className="flex items-center gap-2">
                           {c.profissionais?.whatsapp && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="bg-success/5 hover:bg-success/10 border-success/20 text-success"
-                              onClick={() => window.open(`https://wa.me/${c.profissionais.whatsapp.replace(/\D/g, "")}`, "_blank")}
-                            >
-                              <Phone className="w-4 h-4 mr-2" /> WhatsApp
-                            </Button>
+                            <BotaoWhatsApp 
+                              telefone={c.profissionais.whatsapp}
+                              mensagem={`Olá ${c.profissionais.nome}! Confirmando sua presença hoje (${new Date(slot.data).toLocaleDateString("pt-BR")}) para ${slot.funcao} das ${slot.horario_inicio?.slice(0,5)} às ${slot.horario_fim?.slice(0,5)}. Até logo! - ${estab?.nome}`}
+                            />
                           )}
                           <Button size="sm" variant="hero" onClick={() => handlePresenca(c.id, slot.id, true, c.profissional_id)}>
                             <CheckCircle2 className="w-4 h-4 mr-1" /> Compareceu

@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { useAssinatura } from "@/hooks/useAssinatura";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
+import { AvisoLegal } from "@/components/AvisoLegal";
 
 
 const formSchema = z.object({
@@ -125,6 +126,10 @@ const CriarEscala = () => {
             </div>
 
             <FormField control={form.control} name="endereco" render={({ field }) => <FormItem><FormLabel>Endereço (opcional)</FormLabel><FormControl><Input {...field} placeholder="Rua, número" /></FormControl><FormMessage /></FormItem>} />
+
+            <div className="pt-2">
+              <AvisoLegal />
+            </div>
 
             <Button type="submit" variant="hero" className="w-full" disabled={saving}>{saving ? "Criando..." : "Criar Escala"}</Button>
           </form>

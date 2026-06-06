@@ -13,6 +13,7 @@ import { useSlotsAbertos } from "@/hooks/queries/useSlots";
 import { useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
 import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { AvisoLegal } from "@/components/AvisoLegal";
 
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -149,10 +150,7 @@ const Oportunidades = () => {
         </div>
 
         {/* Legal notice */}
-        <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 flex items-start gap-2">
-          <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-muted-foreground">{getAvisoLegal()}</p>
-        </div>
+        <AvisoLegal />
 
         {loading ? (
           <LoadingSpinner />
