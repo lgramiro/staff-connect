@@ -12,6 +12,9 @@ import { useSettings } from "@/hooks/useSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+import { useAssinatura } from "@/hooks/useAssinatura";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
+
 
 const formSchema = z.object({
   dataInicio: z.string().min(1, "Data de início é obrigatória"),
@@ -38,6 +41,9 @@ const CriarEscala = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { podeCriarVaga, limiteVagas, plano } = useAssinatura();
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,7 +55,14 @@ const CriarEscala = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) return;
+    
+    if (!podeCriarVaga()) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+
     setSaving(true);
+
 
     const { data: estab } = await supabase.from("estabelecimentos").select("id, endereco").eq("user_id", user.id).single();
     if (!estab) { toast({ title: "Erro", description: "Estabelecimento não encontrado.", variant: "destructive" }); setSaving(false); return; }
@@ -117,7 +130,15 @@ const CriarEscala = () => {
           </form>
         </Form>
       </div>
+      
+      <UpgradeDialog 
+        open={showUpgradeDialog} 
+        onOpenChange={setShowUpgradeDialog}
+        limite={limiteVagas()}
+        planoNome={plano?.nome || "Grátis"}
+      />
     </EstabelecimentoLayout>
+
   );
 };
 
