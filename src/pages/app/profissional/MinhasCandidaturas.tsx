@@ -24,19 +24,18 @@ const MinhasCandidaturas = () => {
   const atualizarCandidatura = useAtualizarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();
 
-  // Buscar avaliações feitas pelo profissional para saber se já avaliou o estabelecimento
-  // (Ou vice-versa, dependendo da lógica do app. Geralmente profissional avalia o trabalho)
-  const { data: minhasAvaliacoes = [] } = useQuery({
-    queryKey: ["avaliacoes-feitas", prof?.user_id],
+  // Buscar avaliações de estabelecimentos feitas pelo profissional
+  const { data: avaliacoesEstab = [], refetch: refetchAvaliacoes } = useQuery({
+    queryKey: ["avaliacoes-estabelecimentos-feitas", prof?.id],
     queryFn: async () => {
-      if (!prof?.user_id) return [];
+      if (!prof?.id) return [];
       const { data } = await supabase
-        .from("avaliacoes")
+        .from("avaliacoes_estabelecimentos")
         .select("candidatura_id")
-        .eq("avaliador_id", prof.user_id);
+        .eq("profissional_id", prof.id);
       return data || [];
     },
-    enabled: !!prof?.user_id,
+    enabled: !!prof?.id,
   });
 
   const handleConfirm = async (id: string, slotId: string, accept: boolean) => {
@@ -93,8 +92,38 @@ const MinhasCandidaturas = () => {
     nao_compareceu: { label: "Não compareceu", color: "text-red-700 bg-red-700/10" },
   };
 
+  const [evaluating, setEvaluating] = useState<any>(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmitEvaluation = async () => {
+    if (!evaluating || rating === 0) return;
+    
+    setIsSubmitting(true);
+    const { error } = await supabase.from("avaliacoes_estabelecimentos").insert({
+      candidatura_id: evaluating.id,
+      profissional_id: prof.id,
+      estabelecimento_id: evaluating.slots.estabelecimento_id,
+      nota: rating,
+      comentario: comment
+    });
+
+    setIsSubmitting(false);
+    if (error) {
+      toast({ title: "Erro ao enviar avaliação", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Avaliação enviada com sucesso!" });
+      setEvaluating(null);
+      setRating(0);
+      setComment("");
+      refetchAvaliacoes();
+    }
+  };
+
   const CandidaturaCard = ({ c }: { c: any }) => {
-    const jaAvaliou = minhasAvaliacoes.some(a => a.candidatura_id === c.id);
+    const jaAvaliou = avaliacoesEstab.some(a => a.candidatura_id === c.id);
     
     return (
       <Card key={c.id} className="p-4 border-border overflow-hidden">
@@ -106,7 +135,9 @@ const MinhasCandidaturas = () => {
                 {statusInfo[c.status]?.label || c.status}
               </Badge>
             </div>
-            <p className="text-muted-foreground font-medium">{c.slots?.estabelecimentos?.nome}</p>
+            <Link to={`/app/profissional/estabelecimento/${c.slots?.estabelecimento_id}`} className="text-primary hover:underline font-medium">
+              {c.slots?.estabelecimentos?.nome}
+            </Link>
             
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2">
               <div className="flex items-center gap-1">
@@ -162,13 +193,61 @@ const MinhasCandidaturas = () => {
 
             {c.status === "concluida" && (
               <div className="space-y-2">
-                <Badge variant="outline" className={jaAvaliou ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-blue-50 text-blue-700 border-blue-200"}>
-                  {jaAvaliou ? "Avaliação enviada" : "Pendente de avaliação"}
+                <Badge variant="outline" className={jaAvaliou ? "bg-emerald-50 text-emerald-700 border-emerald-200 w-full justify-center" : "bg-blue-50 text-blue-700 border-blue-200 w-full justify-center"}>
+                  {jaAvaliou ? "Avaliado" : "Pendente de avaliação"}
                 </Badge>
                 {!jaAvaliou && (
-                  <Button variant="hero" size="sm" asChild className="w-full">
-                    <Link to="/app/profissional/avaliacoes">Avaliar Agora</Link>
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="hero" size="sm" className="w-full" onClick={() => setEvaluating(c)}>
+                        <Star className="w-4 h-4 mr-2" />
+                        Avaliar Estabelecimento
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Avaliar {c.slots?.estabelecimentos?.nome}</DialogTitle>
+                        <DialogDescription>
+                          Sua avaliação ajuda outros profissionais a escolherem os melhores lugares para trabalhar.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="flex flex-col items-center gap-3">
+                          <p className="font-medium text-sm text-muted-foreground">Como foi sua experiência?</p>
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map(n => (
+                              <button
+                                key={n}
+                                onClick={() => setRating(n)}
+                                className="transition-transform active:scale-90"
+                              >
+                                <Star 
+                                  className={`w-10 h-10 ${rating >= n ? "fill-warning text-warning" : "text-muted-foreground/30"}`} 
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Comentário (opcional)</label>
+                          <Textarea 
+                            placeholder="Conte-nos como foi trabalhar lá..." 
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            className="resize-none"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="ghost">Cancelar</Button>
+                        </DialogClose>
+                        <Button variant="hero" onClick={handleSubmitEvaluation} disabled={rating === 0 || isSubmitting}>
+                          {isSubmitting ? "Enviando..." : "Enviar Avaliação"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
             )}
