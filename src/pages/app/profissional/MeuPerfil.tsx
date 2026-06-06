@@ -28,6 +28,40 @@ const MeuPerfil = () => {
 
   const { data: prof, isLoading: loading } = useProfissionalQuery(user?.id);
   const updateProfissional = useProfissionalMutation(user?.id);
+  const [stats, setStats] = useState({ taxa: 100, diarias: 0, ocorrencias: 0 });
+
+  useEffect(() => {
+    if (!prof?.id) return;
+    const loadStats = async () => {
+      // Diárias realizadas
+      const { data: concluidas } = await supabase
+        .from("candidaturas")
+        .select("status")
+        .eq("profissional_id", prof.id)
+        .in("status", ["concluida", "no_show", "nao_compareceu"]);
+      
+      const totalConcluidas = concluidas?.filter(c => c.status === "concluida").length || 0;
+      const totalFaltas = concluidas?.filter(c => ["no_show", "nao_compareceu"].includes(c.status)).length || 0;
+      const taxa = (totalConcluidas + totalFaltas) > 0 ? (totalConcluidas / (totalConcluidas + totalFaltas)) * 100 : 100;
+
+      // Ocorrências últimos 90 dias
+      const noventaDiasAtras = new Date();
+      noventaDiasAtras.setDate(noventaDiasAtras.getDate() - 90);
+      const { count: ocs } = await supabase
+        .from("ocorrencias_slots")
+        .select("*", { count: 'exact', head: true })
+        .eq("profissional_id", prof.id)
+        .eq("tipo", "no_show")
+        .gte("created_at", noventaDiasAtras.toISOString());
+
+      setStats({
+        taxa,
+        diarias: totalConcluidas,
+        ocorrencias: ocs || 0
+      });
+    };
+    loadStats();
+  }, [prof?.id]);
 
   const { url: fotoUrl } = useSupabaseUrl(form.foto_url || prof?.foto_url, "fotos");
   const { url: cvUrl } = useSupabaseUrl(form.curriculo_url || prof?.curriculo_url, "curriculos");
@@ -154,6 +188,22 @@ const MeuPerfil = () => {
                 <span className="font-semibold">{Number(prof.trust_score).toFixed(1)}</span>
                 <span className="text-sm text-muted-foreground">({prof.total_avaliacoes} avaliações)</span>
               </div>
+              
+              {!editing && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <Badge variant="secondary" className="bg-success/10 text-success hover:bg-success/10 border-none">
+                    {stats.taxa.toFixed(0)}% Comparecimento
+                  </Badge>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10 border-none">
+                    {stats.diarias} Diárias realizadas
+                  </Badge>
+                  {stats.ocorrencias > 0 && (
+                    <Badge variant="secondary" className="bg-destructive/10 text-destructive hover:bg-destructive/10 border-none">
+                      {stats.ocorrencias} No-shows (90d)
+                    </Badge>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

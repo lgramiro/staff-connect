@@ -2,7 +2,18 @@ import { useMemo, useState, useEffect } from "react";
 import { ProfissionalLayout } from "@/components/layouts/ProfissionalLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Briefcase, CheckCircle2, Clock, Star, CalendarClock, DollarSign, AlertCircle, History } from "lucide-react";
+import { 
+  Briefcase, 
+  CheckCircle2, 
+  Clock, 
+  Star, 
+  CalendarClock, 
+  DollarSign, 
+  AlertCircle, 
+  History, 
+  Zap,
+  MapPin
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCandidaturasByProfissional, useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
 import { useProfissionalQuery } from "@/hooks/queries/useProfissional";
@@ -12,6 +23,94 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+
+const VagasUrgentesSection = ({ profId, profFuncoes }: { profId: string | undefined, profFuncoes: string[] }) => {
+  const [urgentes, setUrgentes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [candidaturasIds, setCandidaturasIds] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchUrgentes = async () => {
+      if (!profId || profFuncoes.length === 0) {
+        setLoading(false);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from("slots")
+        .select("*, estabelecimentos(nome)")
+        .eq("urgente", true)
+        .eq("status", "aberto")
+        .in("funcao", profFuncoes)
+        .limit(3);
+      
+      if (data) setUrgentes(data);
+      
+      const { data: cands } = await supabase
+        .from("candidaturas")
+        .select("slot_id")
+        .eq("profissional_id", profId);
+      
+      if (cands) setCandidaturasIds(new Set(cands.map(c => c.slot_id)));
+      setLoading(false);
+    };
+
+    fetchUrgentes();
+  }, [profId, profFuncoes]);
+
+  const handleCandidatar = async (slotId: string) => {
+    const { data, error } = await supabase
+      .from("candidaturas")
+      .insert({ slot_id: slotId, profissional_id: profId })
+      .select()
+      .single();
+    
+    if (error) {
+      toast({ title: "Erro ao se candidatar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Candidatura enviada!" });
+      setCandidaturasIds(prev => new Set([...prev, slotId]));
+    }
+  };
+
+  if (loading) return null;
+  if (urgentes.length === 0) return null;
+
+  return (
+    <div className="space-y-4">
+      <h2 className="font-display text-lg font-bold flex items-center gap-2">
+        <Zap className="w-5 h-5 text-destructive fill-destructive" />
+        Vagas Urgentes para Você
+      </h2>
+      <div className="grid gap-4 md:grid-cols-3">
+        {urgentes.map(vaga => (
+          <div key={vaga.id} className="bg-card rounded-xl p-4 border border-destructive/20 bg-destructive/5 space-y-3 relative overflow-hidden group hover:border-destructive/40 transition-all">
+            <div className="flex justify-between items-start">
+              <Badge variant="destructive" className="text-[10px]">URGENTE</Badge>
+              <p className="font-bold text-success">R$ {Number(vaga.valor).toFixed(0)}</p>
+            </div>
+            <div>
+              <p className="font-bold text-sm line-clamp-1">{vaga.funcao}</p>
+              <p className="text-xs text-muted-foreground line-clamp-1">{vaga.estabelecimentos?.nome}</p>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              <CalendarClock className="w-3 h-3" />
+              {new Date(vaga.data).toLocaleDateString("pt-BR")}
+            </div>
+            {candidaturasIds.has(vaga.id) ? (
+              <Button disabled variant="secondary" size="sm" className="w-full text-xs h-8">Candidatado</Button>
+            ) : (
+              <Button variant="hero" size="sm" className="w-full text-xs h-8" onClick={() => handleCandidatar(vaga.id)}>Candidatar-se</Button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const ProfissionalDashboard = () => {
   usePageTitle("Início | Tem Staff");
@@ -280,6 +379,8 @@ const ProfissionalDashboard = () => {
             </div>
           </div>
         </div>
+
+        <VagasUrgentesSection profId={prof?.id} profFuncoes={prof?.funcoes || []} />
 
         {/* Atalhos rápidos */}
         <div className="flex flex-col sm:flex-row gap-4 pt-2">
