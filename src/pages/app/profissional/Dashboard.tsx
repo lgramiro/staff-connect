@@ -12,9 +12,6 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
-
-
-
 const ProfissionalDashboard = () => {
   usePageTitle("Início | Tem Staff");
   const { user, profile } = useAuth();
@@ -22,43 +19,6 @@ const ProfissionalDashboard = () => {
   const { data: cands = [], isLoading: loading } = useCandidaturasByProfissional(prof?.id);
   const atualizarCandidatura = useAtualizarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();
-  
-  if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><LoadingSpinner text="Carregando seu dashboard..." /></div></ProfissionalLayout>;
-
-  const stats = {
-    enviadas: cands.filter(c => c.status === "enviada").length,
-    aprovadas: cands.filter(c => ["aprovada", "confirmada", "concluida"].includes(c.status)).length,
-    aguardando: cands.filter(c => c.status === "aprovada").length,
-  };
-
-  const pendentes = cands.filter(c => c.status === "aprovada");
-
-  const handleConfirm = async (id: string, slotId: string, accept: boolean) => {
-    if (accept) {
-      atualizarCandidatura.mutate({ id, status: "confirmada" });
-      updateSlotStatus.mutate({ id: slotId, status: "confirmado" });
-      
-      const estabUserId = await getEstabelecimentoUserIdBySlot(slotId);
-      if (estabUserId) {
-        await criarNotificacao({
-          user_id: estabUserId,
-          titulo: "Profissional confirmou presença",
-          mensagem: "Um profissional confirmou presença em uma vaga.",
-          tipo: "confirmacao",
-          referencia_id: id,
-        });
-      }
-    } else {
-      atualizarCandidatura.mutate({ id, status: "recusada" });
-    }
-  };
-
-
-  const statCards = [
-    { label: "Candidaturas", value: stats.enviadas, icon: Briefcase, color: "bg-primary/10 text-primary" },
-    { label: "Aprovadas", value: stats.aprovadas, icon: CheckCircle2, color: "bg-success/10 text-success" },
-    { label: "Confirmar", value: stats.aguardando, icon: Clock, color: "bg-warning/10 text-warning" },
-  ];
 
   // Trust score
   const trustScore = Number(prof?.trust_score || 0);
@@ -107,6 +67,32 @@ const ProfissionalDashboard = () => {
     return meses;
   }, [cands]);
 
+  const stats = {
+    enviadas: cands.filter(c => c.status === "enviada").length,
+    aprovadas: cands.filter(c => ["aprovada", "confirmada", "concluida"].includes(c.status)).length,
+    aguardando: cands.filter(c => c.status === "aprovada").length,
+  };
+
+  const handleConfirm = async (id: string, slotId: string, accept: boolean) => {
+    if (accept) {
+      atualizarCandidatura.mutate({ id, status: "confirmada" });
+      updateSlotStatus.mutate({ id: slotId, status: "confirmado" });
+      
+      const estabUserId = await getEstabelecimentoUserIdBySlot(slotId);
+      if (estabUserId) {
+        await criarNotificacao({
+          user_id: estabUserId,
+          titulo: "Profissional confirmou presença",
+          mensagem: "Um profissional confirmou presença em uma vaga.",
+          tipo: "confirmacao",
+          referencia_id: id,
+        });
+      }
+    } else {
+      atualizarCandidatura.mutate({ id, status: "recusada" });
+    }
+  };
+
   const renderStars = (score: number) => {
     const full = Math.floor(score);
     const half = score - full >= 0.5;
@@ -124,6 +110,14 @@ const ProfissionalDashboard = () => {
       </div>
     );
   };
+
+  const statCards = [
+    { label: "Candidaturas", value: stats.enviadas, icon: Briefcase, color: "bg-primary/10 text-primary" },
+    { label: "Aprovadas", value: stats.aprovadas, icon: CheckCircle2, color: "bg-success/10 text-success" },
+    { label: "Confirmar", value: stats.aguardando, icon: Clock, color: "bg-warning/10 text-warning" },
+  ];
+
+  if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><LoadingSpinner text="Carregando seu dashboard..." /></div></ProfissionalLayout>;
 
   return (
     <ProfissionalLayout>
@@ -221,8 +215,6 @@ const ProfissionalDashboard = () => {
             </ResponsiveContainer>
           </div>
         </div>
-
-
 
         {/* Atalhos rápidos */}
         <div className="flex gap-3">
