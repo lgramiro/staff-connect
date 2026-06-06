@@ -173,6 +173,74 @@ export type Database = {
           },
         ]
       }
+      documentos: {
+        Row: {
+          aceite_estabelecimento_at: string | null
+          aceite_profissional_at: string | null
+          created_at: string | null
+          estabelecimento_id: string | null
+          gerado_at: string | null
+          id: string
+          pdf_url: string
+          profissional_id: string | null
+          slot_id: string | null
+          tipo: string
+        }
+        Insert: {
+          aceite_estabelecimento_at?: string | null
+          aceite_profissional_at?: string | null
+          created_at?: string | null
+          estabelecimento_id?: string | null
+          gerado_at?: string | null
+          id?: string
+          pdf_url: string
+          profissional_id?: string | null
+          slot_id?: string | null
+          tipo: string
+        }
+        Update: {
+          aceite_estabelecimento_at?: string | null
+          aceite_profissional_at?: string | null
+          created_at?: string | null
+          estabelecimento_id?: string | null
+          gerado_at?: string | null
+          id?: string
+          pdf_url?: string
+          profissional_id?: string | null
+          slot_id?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_estabelecimento_id_fkey"
+            columns: ["estabelecimento_id"]
+            isOneToOne: false
+            referencedRelation: "estabelecimentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estabelecimentos: {
         Row: {
           cidade: string
