@@ -92,7 +92,7 @@ const Candidaturas = () => {
         const candidatura = candidaturas.find(c => c.id === id);
         const slot = slotsAbertos.find(s => s.id === slotId) || candidatura?.slots;
         
-        if (candiatura && slot && estab) {
+        if (candidatura && slot && estab) {
           const pdfBlob = gerarConvitePDF({
             profissional: {
               nome: candidatura.profissionais_publicos.nome,
@@ -135,7 +135,7 @@ const Candidaturas = () => {
         }
       } catch (err) {
         console.error("Erro ao gerar/salvar convite:", err);
-        toast({ title: "Aviso", description: "Candidatura aprovada, mas houve um erro ao gerar o documento de convite.", variant: "warning" });
+        toast({ title: "Aviso", description: "Candidatura aprovada, mas houve um erro ao gerar o documento de convite.", variant: "default" });
       }
 
       const profUserId = await getProfissionalUserId(profissionalId);
