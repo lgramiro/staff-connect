@@ -68,10 +68,6 @@ const EstabelecimentoDashboard = () => {
     loadPendentes();
   }, [user, estab?.id]);
   
-  const loading = loadingSlots || loadingCands || loadingEstab;
-
-  if (loading) return <EstabelecimentoLayout><div className="flex justify-center py-12"><LoadingSpinner text="Carregando dashboard..." /></div></EstabelecimentoLayout>;
-
   const stats = useMemo(() => {
     const abertos = slots.filter(s => s.status === "aberto").length;
     const confirmados = slots.filter(s => ["confirmado", "concluido"].includes(s.status)).length;
@@ -123,20 +119,6 @@ const EstabelecimentoDashboard = () => {
     });
   }, [slots]);
 
-  const handleMarcarUrgente = async (slotId: string) => {
-    const { error } = await supabase
-      .from("slots")
-      .update({ urgente: true })
-      .eq("id", slotId);
-
-    if (error) {
-      toast.error("Erro ao marcar como urgente");
-    } else {
-      toast.success("Vaga marcada como urgente!");
-      queryClient.invalidateQueries({ queryKey: ["slots-estabelecimento"] });
-    }
-  };
-
   const slotsByDay = useMemo(() => {
     const byDay: Record<number, { count: number; status: string }> = {};
     slots.forEach(s => {
@@ -156,6 +138,20 @@ const EstabelecimentoDashboard = () => {
     return slots.filter(s => s.data === dateStr);
   }, [selectedDay, slots, currentMonth]);
 
+  const handleMarcarUrgente = async (slotId: string) => {
+    const { error } = await supabase
+      .from("slots")
+      .update({ urgente: true })
+      .eq("id", slotId);
+
+    if (error) {
+      toast.error("Erro ao marcar como urgente");
+    } else {
+      toast.success("Vaga marcada como urgente!");
+      queryClient.invalidateQueries({ queryKey: ["slots-estabelecimento"] });
+    }
+  };
+
   const monthNames = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
@@ -174,6 +170,10 @@ const EstabelecimentoDashboard = () => {
     { label: "Pendentes", value: stats.pendentes, icon: Clock, color: "bg-warning/10 text-warning" },
     { label: "Abertos", value: stats.abertos, icon: Users, color: "bg-info/10 text-info" },
   ];
+
+  const loading = loadingSlots || loadingCands || loadingEstab;
+
+  if (loading) return <EstabelecimentoLayout><div className="flex justify-center py-12"><LoadingSpinner text="Carregando dashboard..." /></div></EstabelecimentoLayout>;
 
   return (
     <EstabelecimentoLayout>
