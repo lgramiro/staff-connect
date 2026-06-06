@@ -58,12 +58,13 @@ const Oportunidades = () => {
     const loadProfData = async () => {
       const { data: prof } = await supabase
         .from("profissionais")
-        .select("id, latitude, longitude, raio_atuacao")
+        .select("id, latitude, longitude, raio_atuacao, funcoes")
         .eq("user_id", user.id)
         .single();
       
       if (prof) {
         setProfId(prof.id);
+        setProfFuncoes(prof.funcoes || []);
         if (prof.latitude && prof.longitude) {
           setProfLocation({
             lat: prof.latitude,
