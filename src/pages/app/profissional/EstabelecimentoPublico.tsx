@@ -39,9 +39,8 @@ const EstabelecimentoPublico = () => {
       // Buscar total de serviços concluídos neste estabelecimento
       const { count: totalServicos } = await supabase
         .from("candidaturas")
-        .select("id", { count: 'exact', head: true })
+        .select("id, slots!inner(estabelecimento_id)", { count: 'exact', head: true })
         .eq("status", "concluida")
-        .innerJoin("slots", "slots.id", "candidaturas.slot_id")
         .eq("slots.estabelecimento_id", id);
 
       return {
@@ -56,7 +55,7 @@ const EstabelecimentoPublico = () => {
   });
 
   if (isLoading) return <ProfissionalLayout><LoadingSpinner /></ProfissionalLayout>;
-  if (!estab) return <ProfissionalLayout><EmptyState title="Estabelecimento não encontrado" /></ProfissionalLayout>;
+  if (!estab) return <ProfissionalLayout><EmptyState icon={Building2} title="Estabelecimento não encontrado" /></ProfissionalLayout>;
 
   return (
     <ProfissionalLayout>
