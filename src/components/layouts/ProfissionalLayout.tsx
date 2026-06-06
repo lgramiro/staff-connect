@@ -24,9 +24,11 @@ const navItems = [
   { icon: Home, label: "Início", path: "/app/profissional" },
   { icon: Search, label: "Oportunidades", path: "/app/profissional/oportunidades" },
   { icon: FileText, label: "Candidaturas", path: "/app/profissional/candidaturas" },
+  { icon: FileText, label: "Documentos", path: "/app/profissional/documentos" },
   { icon: User, label: "Perfil", path: "/app/profissional/perfil" },
   { icon: Star, label: "Avaliar", path: "/app/profissional/avaliacoes" },
 ];
+
 
 export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
   const location = useLocation();
