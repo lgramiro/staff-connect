@@ -445,6 +445,11 @@ const Candidaturas = () => {
                               </Badge>
                             )}
 
+                            {c.status === "convidado" && (
+                              <Badge className="bg-orange-500/20 text-orange-500 hover:bg-orange-500/20 border-none">
+                                Convidado
+                              </Badge>
+                            )}
                             {c.status === "recusada" && (
                               <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/20 border-none">
                                 Recusada
