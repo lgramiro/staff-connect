@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Check, X, Crown, Calendar, MessageCircle, Mail } from "lucide-react";
+import { Check, X, Crown, Calendar, MessageCircle, Mail, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,12 +14,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useAssinatura } from "@/hooks/useAssinatura";
+import { Progress } from "@/components/ui/progress";
+
 
 const PlanosComparar = () => {
   const { user } = useAuth();
+  const { vagasUsadasMes, limiteVagas, plano: activePlan, assinatura: activeSubscription } = useAssinatura();
+
   const [planos, setPlanos] = useState<any[]>([]);
-  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
-  const [assinatura, setAssinatura] = useState<{ inicio: string; fim: string | null } | null>(null);
   const [contatoUpgrade, setContatoUpgrade] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -27,29 +30,19 @@ const PlanosComparar = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [p, estab, setting] = await Promise.all([
+      const [p, setting] = await Promise.all([
         supabase.from("planos").select("*").eq("ativo", true).order("preco"),
-        supabase.from("estabelecimentos").select("id").eq("user_id", user!.id).maybeSingle(),
         supabase.from("settings").select("valor").eq("chave", "contato_upgrade").maybeSingle(),
       ]);
       setPlanos(p.data || []);
       setContatoUpgrade(setting.data?.valor || "");
-      if (estab.data) {
-        const { data: ass } = await supabase
-          .from("assinaturas")
-          .select("plano_id, inicio, fim")
-          .eq("estabelecimento_id", estab.data.id)
-          .eq("status", "ativa")
-          .maybeSingle();
-        if (ass) {
-          setCurrentPlan(ass.plano_id);
-          setAssinatura({ inicio: ass.inicio, fim: ass.fim });
-        }
-      }
       setLoading(false);
     };
-    if (user) load();
-  }, [user]);
+    load();
+  }, []);
+
+  const currentPlanId = activeSubscription?.plano_id;
+
 
   const Feature = ({ enabled }: { enabled: boolean }) =>
     enabled ? (
@@ -88,15 +81,40 @@ const PlanosComparar = () => {
           </p>
         </div>
 
-        {assinatura && (
-          <div className="max-w-md mx-auto bg-card border border-border rounded-xl p-4 flex items-center justify-center gap-3 text-sm">
-            <Calendar className="w-4 h-4 text-primary" />
-            <span className="text-muted-foreground">Assinatura ativa:</span>
-            <span className="font-semibold">
-              {formatDate(assinatura.inicio)} → {formatDate(assinatura.fim)}
-            </span>
+        {activeSubscription && (
+          <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span>Assinatura ativa:</span>
+                <span className="font-semibold text-foreground">
+                  {formatDate(activeSubscription.inicio)} → {formatDate(activeSubscription.fim)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Info className="w-3 h-3" />
+                <span>Sua assinatura renova automaticamente se o fim estiver vazio ou em {formatDate(activeSubscription.fim)}.</span>
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-2">
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-muted-foreground">Vagas usadas este mês:</span>
+                <span className="font-semibold">
+                  {vagasUsadasMes()} / {limiteVagas() || "∞"}
+                </span>
+              </div>
+              <Progress 
+                value={limiteVagas() ? (vagasUsadasMes() / limiteVagas()!) * 100 : 0} 
+                className="h-2"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                O limite de vagas reinicia no primeiro dia de cada mês.
+              </p>
+            </div>
           </div>
         )}
+
 
         {loading ? (
           <div className="flex justify-center py-12">
@@ -106,7 +124,7 @@ const PlanosComparar = () => {
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {planos.map((p, i) => {
               const isPopular = i === 1;
-              const isCurrent = p.id === currentPlan;
+              const isCurrent = p.id === currentPlanId;
               const isPago = Number(p.preco) > 0;
               return (
                 <div
