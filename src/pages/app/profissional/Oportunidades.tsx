@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ProfissionalLayout } from "@/components/layouts/ProfissionalLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Clock, Calendar, DollarSign, Zap, AlertTriangle, Search } from "lucide-react";
+import { MapPin, Clock, Calendar, DollarSign, Zap, AlertTriangle, Search, Star } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { useSlotsAbertos } from "@/hooks/queries/useSlots";
 import { useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
@@ -32,25 +32,42 @@ const Oportunidades = () => {
   const { getFuncoes, getAvisoLegal } = useSettings();
   const { toast } = useToast();
   const [profId, setProfId] = useState<string | null>(null);
+  const [profFuncoes, setProfFuncoes] = useState<string[]>([]);
   const [profLocation, setProfLocation] = useState<{lat: number, lng: number, raio: number} | null>(null);
   const [minhasCandidaturasIds, setMinhasCandidaturasIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({ cidade: "", funcao: "", data: "", valorMin: "" });
 
   const { data: rawSlots = [], isLoading: loading } = useSlotsAbertos(filters);
   
-  const slots = rawSlots.filter(slot => {
-    if (!profLocation || !slot.estabelecimentos?.latitude || !slot.estabelecimentos?.longitude) return true;
-    
-    const dist = calculateDistance(
-      profLocation.lat, 
-      profLocation.lng, 
-      slot.estabelecimentos.latitude, 
-      slot.estabelecimentos.longitude
-    );
-    
-    // Filtra apenas vagas dentro do raio de atuação do profissional
-    return dist <= (profLocation.raio || 50);
-  });
+  const sortedSlots = useMemo(() => {
+    return [...rawSlots].sort((a, b) => {
+      // 1. Urgente DESC
+      if (a.urgente && !b.urgente) return -1;
+      if (!a.urgente && b.urgente) return 1;
+      
+      // 2. Data ASC
+      if (a.data !== b.data) return (a.data || "").localeCompare(b.data || "");
+      
+      // 3. Valor DESC
+      return Number(b.valor || 0) - Number(a.valor || 0);
+    });
+  }, [rawSlots]);
+
+  const slots = useMemo(() => {
+    return sortedSlots.filter(slot => {
+      if (!profLocation || !slot.estabelecimentos?.latitude || !slot.estabelecimentos?.longitude) return true;
+      
+      const dist = calculateDistance(
+        profLocation.lat, 
+        profLocation.lng, 
+        slot.estabelecimentos.latitude, 
+        slot.estabelecimentos.longitude
+      );
+      
+      return dist <= (profLocation.raio || 50);
+    });
+  }, [sortedSlots, profLocation]);
+
   const criarCandidatura = useCriarCandidatura();
 
   useEffect(() => {
@@ -58,12 +75,13 @@ const Oportunidades = () => {
     const loadProfData = async () => {
       const { data: prof } = await supabase
         .from("profissionais")
-        .select("id, latitude, longitude, raio_atuacao")
+        .select("id, latitude, longitude, raio_atuacao, funcoes")
         .eq("user_id", user.id)
         .single();
       
       if (prof) {
         setProfId(prof.id);
+        setProfFuncoes(prof.funcoes || []);
         if (prof.latitude && prof.longitude) {
           setProfLocation({
             lat: prof.latitude,
@@ -108,14 +126,11 @@ const Oportunidades = () => {
               referencia_id: candidatura?.id,
             });
           }
-          // Atualiza o estado local para desabilitar o botão imediatamente
           setMinhasCandidaturasIds(prev => new Set([...prev, slotId]));
         },
       }
     );
   };
-
-
 
   return (
     <ProfissionalLayout>
@@ -145,31 +160,42 @@ const Oportunidades = () => {
           <EmptyState icon={Search} title="Nenhuma vaga encontrada" description="Tente ajustar os filtros ou volte mais tarde para conferir novas oportunidades." />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {slots.map(slot => (
-              <div key={slot.id} className="bg-card rounded-xl p-5 border border-border hover:border-primary/30 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex gap-2">
-                    {slot.urgente && <Badge variant="destructive" className="text-xs"><Zap className="w-3 h-3 mr-1" />URGENTE</Badge>}
-                    <Badge variant="outline" className="text-xs">{slot.funcao}</Badge>
+            {slots.map(slot => {
+              const isRecomendada = profFuncoes.includes(slot.funcao);
+              return (
+                <div key={slot.id} className="bg-card rounded-xl p-5 border border-border hover:border-primary/30 hover:shadow-md transition-all relative overflow-hidden group">
+                  {isRecomendada && (
+                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg z-10 flex items-center gap-1 shadow-sm">
+                      <Star className="w-3 h-3 fill-current" /> RECOMENDADA
+                    </div>
+                  )}
+                  
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex flex-wrap gap-2">
+                      {slot.urgente && <Badge variant="destructive" className="text-[10px] h-5"><Zap className="w-3 h-3 mr-1" />URGENTE</Badge>}
+                      <Badge variant="outline" className="text-[10px] h-5">{slot.funcao}</Badge>
+                    </div>
+                    <span className="font-display font-bold text-lg">R$ {Number(slot.valor).toFixed(2)}</span>
                   </div>
-                  <span className="font-display font-bold">R$ {Number(slot.valor).toFixed(2)}</span>
+                  
+                  <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">{slot.estabelecimentos?.nome || "Estabelecimento"}</h3>
+                  
+                  <div className="space-y-2 text-sm text-muted-foreground mb-6">
+                    <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary/60" />{slot.estabelecimentos?.cidade || slot.endereco}</div>
+                    <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary/60" />{new Date(slot.data).toLocaleDateString("pt-BR")}</div>
+                    <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary/60" />{slot.horario_inicio?.slice(0,5)} - {slot.horario_fim?.slice(0,5)}</div>
+                  </div>
+
+                  {minhasCandidaturasIds.has(slot.id) ? (
+                    <Button variant="secondary" className="w-full bg-muted text-muted-foreground cursor-default opacity-80" disabled>
+                      <Clock className="w-4 h-4 mr-2" /> Aguardando aprovação
+                    </Button>
+                  ) : (
+                    <Button variant="hero" className="w-full shadow-sm hover:shadow-md transition-all" onClick={() => handleCandidatura(slot.id)}>Candidatar-se</Button>
+                  )}
                 </div>
-                <h3 className="font-semibold mb-1">{slot.estabelecimentos?.nome || "Estabelecimento"}</h3>
-                <div className="space-y-1 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-2"><MapPin className="w-4 h-4" />{slot.estabelecimentos?.cidade || slot.endereco}</div>
-                  <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />{slot.data}</div>
-                  <div className="flex items-center gap-2"><Clock className="w-4 h-4" />{slot.horario_inicio} - {slot.horario_fim}</div>
-                  <div className="flex items-center gap-2"><DollarSign className="w-4 h-4" />{slot.quantidade} vaga(s)</div>
-                </div>
-                {minhasCandidaturasIds.has(slot.id) ? (
-                  <Button variant="secondary" className="w-full bg-muted text-muted-foreground cursor-default" disabled>
-                    <Clock className="w-4 h-4 mr-2" /> Aguardando aprovação
-                  </Button>
-                ) : (
-                  <Button variant="hero" className="w-full" onClick={() => handleCandidatura(slot.id)}>Candidatar-se</Button>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

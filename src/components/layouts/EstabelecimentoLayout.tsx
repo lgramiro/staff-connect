@@ -15,7 +15,8 @@ import {
   Bell,
   Menu,
   Zap,
-  CreditCard
+  CreditCard,
+  Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +30,7 @@ const navItems = [
   { icon: Clock, label: "Hoje", path: "/app/estabelecimento/hoje" },
   { icon: Star, label: "Avaliar", path: "/app/estabelecimento/avaliar" },
   { icon: CreditCard, label: "Planos", path: "/app/estabelecimento/planos" },
+  { icon: Heart, label: "Favoritos", path: "/app/estabelecimento/favoritos" },
 ];
 
 export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) => {

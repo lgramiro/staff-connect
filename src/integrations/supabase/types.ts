@@ -227,6 +227,49 @@ export type Database = {
         }
         Relationships: []
       }
+      favoritos_profissionais: {
+        Row: {
+          created_at: string | null
+          estabelecimento_id: string
+          id: string
+          profissional_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          estabelecimento_id: string
+          id?: string
+          profissional_id: string
+        }
+        Update: {
+          created_at?: string | null
+          estabelecimento_id?: string
+          id?: string
+          profissional_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favoritos_profissionais_estabelecimento_id_fkey"
+            columns: ["estabelecimento_id"]
+            isOneToOne: false
+            referencedRelation: "estabelecimentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favoritos_profissionais_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favoritos_profissionais_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes: {
         Row: {
           created_at: string

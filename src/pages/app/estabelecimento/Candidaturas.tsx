@@ -1,26 +1,82 @@
+import { useState, useMemo } from "react";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, User, Star, Instagram, Linkedin, Globe, MapPin, Briefcase, Inbox } from "lucide-react";
+import { 
+  CheckCircle2, 
+  XCircle, 
+  User, 
+  Star, 
+  Instagram, 
+  Linkedin, 
+  Globe, 
+  MapPin, 
+  Briefcase, 
+  Inbox, 
+  Heart,
+  ChevronRight,
+  Send,
+  ExternalLink
+} from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { criarNotificacao, getProfissionalUserId } from "@/lib/notificacoes";
 import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
-import { useCandidaturasByEstabelecimento, useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
-import { useUpdateSlotStatus } from "@/hooks/queries/useSlots";
+import { useCandidaturasByEstabelecimento, useAtualizarCandidatura, useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
+import { useSlotsByEstabelecimento, useUpdateSlotStatus } from "@/hooks/queries/useSlots";
+import { useMatchingProfissionais } from "@/hooks/queries/useMatching";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const Candidaturas = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: estab } = useEstabelecimentoQuery(user?.id);
   const { data: candidaturas = [], isLoading: loading } = useCandidaturasByEstabelecimento(estab?.id);
   
+  // Buscar slots abertos para o matching
+  const { data: slotsAbertos = [] } = useSlotsByEstabelecimento(estab?.id, { status: "aberto" });
+  
+  // Pegar o slot mais recente (pela data de criação ou data do evento)
+  const latestSlot = useMemo(() => {
+    if (slotsAbertos.length === 0) return null;
+    return [...slotsAbertos].sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+  }, [slotsAbertos]);
+
+  const { data: recomendados = [], isLoading: loadingMatching } = useMatchingProfissionais(latestSlot?.id, estab?.id);
+
   const atualizarCandidatura = useAtualizarCandidatura();
+  const criarCandidatura = useCriarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();
+
+  const toggleFavorito = useMutation({
+    mutationFn: async ({ profId, isFav }: { profId: string, isFav: boolean }) => {
+      if (isFav) {
+        await supabase
+          .from("favoritos_profissionais")
+          .delete()
+          .eq("estabelecimento_id", estab?.id)
+          .eq("profissional_id", profId);
+      } else {
+        await supabase
+          .from("favoritos_profissionais")
+          .insert({ estabelecimento_id: estab?.id, profissional_id: profId });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["matching-profissionais"] });
+      queryClient.invalidateQueries({ queryKey: ["favoritos-profissionais"] });
+      toast({ title: "Lista de favoritos atualizada" });
+    }
+  });
 
   const handleAction = async (id: string, status: string, slotId: string, profissionalId: string) => {
     atualizarCandidatura.mutate({ id, status });
@@ -50,6 +106,44 @@ const Candidaturas = () => {
         });
       }
     }
+  };
+
+  const handleConvidar = async (profId: string, slotId: string) => {
+    // Verificar se já existe candidatura
+    const { data: existing } = await supabase
+      .from("candidaturas")
+      .select("id")
+      .eq("slot_id", slotId)
+      .eq("profissional_id", profId)
+      .single();
+
+    if (existing) {
+      toast({ title: "Já existe uma candidatura ou convite para este profissional neste slot.", variant: "destructive" });
+      return;
+    }
+
+    criarCandidatura.mutate({
+      slot_id: slotId,
+      profissional_id: profId,
+    }, {
+      onSuccess: async (data) => {
+        // Atualizar status para convidado (o hook criarCandidatura insere como enviada por padrão)
+        await supabase.from("candidaturas").update({ status: "convidado" }).eq("id", data.id);
+        
+        const profUserId = await getProfissionalUserId(profId);
+        if (profUserId) {
+          await criarNotificacao({
+            user_id: profUserId,
+            titulo: "Você recebeu um convite!",
+            mensagem: "Um estabelecimento convidou você diretamente para uma vaga.",
+            tipo: "candidatura",
+            referencia_id: data.id,
+          });
+        }
+        toast({ title: "Convite enviado com sucesso!" });
+        queryClient.invalidateQueries({ queryKey: ["candidaturas"] });
+      }
+    });
   };
 
   const renderStars = (score: number) => {
@@ -167,18 +261,116 @@ const Candidaturas = () => {
     </Dialog>
   );
 
+  const InviteDialog = ({ prof }: { prof: any }) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="hero" size="sm" className="w-full">Convidar para vaga</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Convidar {prof.nome}</DialogTitle>
+        </DialogHeader>
+        <div className="py-4 space-y-3">
+          <p className="text-sm text-muted-foreground">Selecione para qual vaga deseja convidar este profissional:</p>
+          {slotsAbertos.length === 0 ? (
+            <p className="text-sm font-medium text-destructive">Nenhuma vaga aberta disponível.</p>
+          ) : (
+            <div className="space-y-2">
+              {slotsAbertos.map(slot => (
+                <Button 
+                  key={slot.id} 
+                  variant="outline" 
+                  className="w-full justify-between h-auto py-3 px-4"
+                  onClick={() => handleConvidar(prof.id, slot.id)}
+                >
+                  <div className="text-left">
+                    <p className="font-bold">{slot.funcao}</p>
+                    <p className="text-xs text-muted-foreground">{slot.data} • {slot.horario_inicio?.slice(0,5)}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   const tabs = [
-    { id: "pendentes", label: "Pendentes", statuses: ["enviada"] },
+    { id: "pendentes", label: "Pendentes", statuses: ["enviada", "convidado"] },
     { id: "aprovadas", label: "Aprovadas", statuses: ["aprovada", "confirmada"] },
     { id: "concluidas", label: "Concluídas", statuses: ["concluida"] },
   ];
 
   return (
     <EstabelecimentoLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h1 className="font-display text-2xl font-bold">Candidaturas</h1>
+          <h1 className="font-display text-2xl font-bold">Candidaturas e Matching</h1>
         </div>
+
+        {/* Seção de Recomendados */}
+        {latestSlot && recomendados.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Star className="w-5 h-5 text-warning fill-warning" /> 
+                  Profissionais Recomendados
+                </h2>
+                <p className="text-sm text-muted-foreground">Matching baseado na sua última vaga: <strong>{latestSlot.funcao}</strong></p>
+              </div>
+            </div>
+            
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {recomendados.slice(0, 5).map((prof: any) => (
+                <div key={prof.id} className="bg-card rounded-xl p-4 border border-border hover:shadow-md transition-all flex flex-col relative group">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={cn(
+                      "absolute top-2 right-2 h-8 w-8 transition-colors",
+                      prof.is_favorito ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"
+                    )}
+                    onClick={() => toggleFavorito.mutate({ profId: prof.id, isFav: prof.is_favorito })}
+                  >
+                    <Heart className={cn("w-4 h-4", prof.is_favorito && "fill-current")} />
+                  </Button>
+
+                  <div className="flex flex-col items-center text-center mb-3">
+                    <Avatar className="w-16 h-16 mb-2 border-2 border-primary/10">
+                      <AvatarImage src={prof.foto_url} />
+                      <AvatarFallback>{prof.nome.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <p className="font-bold text-sm line-clamp-1">{prof.nome}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      {renderStars(Number(prof.trust_score || 0))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1 mb-3 justify-center min-h-[44px]">
+                    {prof.funcoes?.slice(0, 2).map((f: string) => (
+                      <Badge key={f} variant="secondary" className="text-[10px] px-1.5 py-0">{f}</Badge>
+                    ))}
+                  </div>
+
+                  <div className="mt-auto space-y-2">
+                    <p className="text-xs text-center font-medium text-muted-foreground">
+                      A partir de <span className="text-foreground">R$ {Number(prof.diaria_minima).toFixed(0)}</span>
+                    </p>
+                    <div className="grid grid-cols-1 gap-2">
+                      <ProfileDialog prof={prof} />
+                      <InviteDialog prof={prof} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Separator className="opacity-50" />
 
         {loading ? (
           <LoadingSpinner />
@@ -253,6 +445,11 @@ const Candidaturas = () => {
                               </Badge>
                             )}
 
+                            {c.status === "convidado" && (
+                              <Badge className="bg-orange-500/20 text-orange-500 hover:bg-orange-500/20 border-none">
+                                Convidado
+                              </Badge>
+                            )}
                             {c.status === "recusada" && (
                               <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/20 border-none">
                                 Recusada
