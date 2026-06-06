@@ -260,6 +260,55 @@ export type Database = {
         }
         Relationships: []
       }
+      ocorrencias_slots: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          id: string
+          profissional_id: string
+          slot_id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          profissional_id: string
+          slot_id: string
+          tipo: string
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          profissional_id?: string
+          slot_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocorrencias_slots_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocorrencias_slots_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocorrencias_slots_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planos: {
         Row: {
           ativo: boolean
