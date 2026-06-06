@@ -48,7 +48,7 @@ const Index = () => {
       )}
 
       {/* Header */}
-      <header className={`fixed ${showInstallBanner ? 'top-8' : 'top-0'} left-0 right-0 z-50 glass-strong transition-all duration-300`}>
+      <header className={`fixed ${showInstallBanner ? 'top-8 md:top-0' : 'top-0'} left-0 right-0 z-50 glass-strong transition-all duration-300`}>
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-hero flex items-center justify-center shadow-glow">
