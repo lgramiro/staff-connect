@@ -14,6 +14,7 @@ import { useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
 import { criarNotificacao, getEstabelecimentoUserIdBySlot } from "@/lib/notificacoes";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AvisoLegal } from "@/components/AvisoLegal";
+import { Link } from "react-router-dom";
 
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -176,7 +177,9 @@ const Oportunidades = () => {
                     <span className="font-display font-bold text-lg">R$ {Number(slot.valor).toFixed(2)}</span>
                   </div>
                   
-                  <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">{slot.estabelecimentos?.nome || "Estabelecimento"}</h3>
+                  <Link to={`/app/profissional/estabelecimento/${slot.estabelecimento_id}`}>
+                    <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors hover:underline">{slot.estabelecimentos?.nome || "Estabelecimento"}</h3>
+                  </Link>
                   
                   <div className="space-y-2 text-sm text-muted-foreground mb-6">
                     <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary/60" />{slot.estabelecimentos?.cidade || slot.endereco}</div>
