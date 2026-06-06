@@ -15,7 +15,10 @@ import {
   TrendingUp,
   Star,
   AlertTriangle,
-  Inbox
+  Inbox,
+  Heart,
+  History,
+  TrendingUp as TrendingIcon
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { Link } from "react-router-dom";
@@ -164,10 +167,39 @@ const EstabelecimentoDashboard = () => {
     setSelectedDay(day);
   };
 
+  const [favCount, setFavCount] = useState(0);
+  const [ocorrencias, setOcorrencias] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!estab?.id) return;
+    const loadExtraStats = async () => {
+      const { count } = await supabase
+        .from("favoritos_profissionais")
+        .select("*", { count: 'exact', head: true })
+        .eq("estabelecimento_id", estab.id);
+      setFavCount(count || 0);
+
+      const { data: ocs } = await supabase
+        .from("ocorrencias_slots")
+        .select(`
+          tipo,
+          descricao,
+          created_at,
+          slots!inner (estabelecimento_id)
+        `)
+        .eq("slots.estabelecimento_id", estab.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      
+      setOcorrencias(ocs || []);
+    };
+    loadExtraStats();
+  }, [estab?.id]);
+
   const statCards = [
     { label: "Total", value: stats.total, icon: CalendarDays, color: "bg-primary/10 text-primary" },
     { label: "Confirmados", value: stats.confirmados, icon: CheckCircle2, color: "bg-success/10 text-success" },
-    { label: "Pendentes", value: stats.pendentes, icon: Clock, color: "bg-warning/10 text-warning" },
+    { label: "Favoritos", value: favCount, icon: Heart, color: "bg-red-500/10 text-red-500", link: "/app/estabelecimento/favoritos" },
     { label: "Abertos", value: stats.abertos, icon: Users, color: "bg-info/10 text-info" },
   ];
 
@@ -202,11 +234,23 @@ const EstabelecimentoDashboard = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {statCards.map((stat, i) => (
                 <div key={i} className="bg-card rounded-xl p-4 border border-border">
-                  <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center mb-3`}>
-                    <stat.icon className="w-5 h-5" />
-                  </div>
-                  <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  {stat.link ? (
+                    <Link to={stat.link}>
+                      <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center mb-3`}>
+                        <stat.icon className="w-5 h-5" />
+                      </div>
+                      <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
+                      <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    </Link>
+                  ) : (
+                    <>
+                      <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center mb-3`}>
+                        <stat.icon className="w-5 h-5" />
+                      </div>
+                      <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
+                      <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -323,13 +367,13 @@ const EstabelecimentoDashboard = () => {
                 <p className="text-xs text-muted-foreground mt-4 italic">Meta sugerida: 85%</p>
               </div>
 
-              {/* Card Profissionais favoritos */}
+              {/* Card Profissionais da casa (mais usados) */}
               <div className="bg-card rounded-xl p-6 border border-border">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-warning/10 rounded-lg">
-                    <Star className="w-5 h-5 text-warning" />
+                  <div className="p-2 bg-success/10 rounded-lg">
+                    <Users className="w-5 h-5 text-success" />
                   </div>
-                  <h3 className="font-display font-semibold">Profissionais favoritos</h3>
+                  <h3 className="font-display font-semibold">Profissionais da casa</h3>
                 </div>
                 {topProfissionais.length === 0 ? (
                   <EmptyState icon={Star} title="Nenhum profissional recorrente ainda" />
