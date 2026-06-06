@@ -16,7 +16,8 @@ import {
   Heart,
   ChevronRight,
   Send,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { criarNotificacao, getProfissionalUserId } from "@/lib/notificacoes";
@@ -34,6 +35,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { gerarConvitePDF } from "@/lib/gerarDocumentos";
+
 
 const Candidaturas = () => {
   const { user } = useAuth();
@@ -83,12 +86,64 @@ const Candidaturas = () => {
     
     if (status === "aprovada") {
       updateSlotStatus.mutate({ id: slotId, status: "reservado" });
+      
+      // Geração de Convite PDF
+      try {
+        const candidatura = candidaturas.find(c => c.id === id);
+        const slot = slotsAbertos.find(s => s.id === slotId) || candidatura?.slots;
+        
+        if (candiatura && slot && estab) {
+          const pdfBlob = gerarConvitePDF({
+            profissional: {
+              nome: candidatura.profissionais_publicos.nome,
+              whatsapp: candidatura.profissionais_publicos.whatsapp
+            },
+            estabelecimento: {
+              nome: estab.nome,
+              endereco: estab.endereco,
+              responsavel: estab.responsavel
+            },
+            slot: {
+              funcao: slot.funcao,
+              data: slot.data,
+              horario_inicio: slot.horario_inicio,
+              horario_fim: slot.horario_fim,
+              valor: Number(slot.valor),
+              endereco: slot.endereco || estab.endereco
+            }
+          });
+
+          const fileName = `convites/${slotId}_${profissionalId}.pdf`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from("documentos")
+            .upload(fileName, pdfBlob, { upsert: true });
+
+          if (uploadError) throw uploadError;
+
+          const { data: publicUrlData } = supabase.storage
+            .from("documentos")
+            .getPublicUrl(fileName);
+
+          await supabase.from("documentos").insert({
+            tipo: "CONVITE",
+            slot_id: slotId,
+            estabelecimento_id: estab.id,
+            profissional_id: profissionalId,
+            pdf_url: publicUrlData.publicUrl,
+            gerado_at: new Date().toISOString()
+          });
+        }
+      } catch (err) {
+        console.error("Erro ao gerar/salvar convite:", err);
+        toast({ title: "Aviso", description: "Candidatura aprovada, mas houve um erro ao gerar o documento de convite.", variant: "warning" });
+      }
+
       const profUserId = await getProfissionalUserId(profissionalId);
       if (profUserId) {
         await criarNotificacao({
           user_id: profUserId,
-          titulo: "Sua candidatura foi aprovada!",
-          mensagem: "Confirme sua presença para garantir a vaga.",
+          titulo: "Sua candidatura foi aprovada! 📄",
+          mensagem: "Um convite formal foi gerado. Acesse 'Meus Documentos' para aceitar e confirmar sua presença.",
           tipo: "aprovacao",
           referencia_id: id,
         });
@@ -100,13 +155,14 @@ const Candidaturas = () => {
         await criarNotificacao({
           user_id: profUserId,
           titulo: "Serviço concluído! 🎉",
-          mensagem: "O estabelecimento finalizou seu serviço. Avalie sua experiência!",
+          mensagem: "O estabelecimento finalizou seu serviço. Avalie sua experiência e confirme o recebimento do pagamento.",
           tipo: "candidatura",
           referencia_id: id,
         });
       }
     }
   };
+
 
   const handleConvidar = async (profId: string, slotId: string) => {
     // Verificar se já existe candidatura
