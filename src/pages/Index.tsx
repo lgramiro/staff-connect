@@ -21,15 +21,12 @@ const Index = () => {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   
   useEffect(() => {
-    // Check if it's mobile and not in standalone mode
-    const isMobile = window.innerWidth < 768;
+    // Check if not in standalone mode
     // @ts-ignore - navigator.standalone is iOS only
     const isIOSStandalone = window.navigator.standalone === true;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || isIOSStandalone;
     
-    console.log("PWA Status:", { isMobile, isStandalone, isIOSStandalone });
-    
-    if (isMobile && !isStandalone) {
+    if (!isStandalone) {
       setShowInstallBanner(true);
     }
   }, []);
