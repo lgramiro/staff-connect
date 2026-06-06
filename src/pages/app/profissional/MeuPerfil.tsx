@@ -20,6 +20,7 @@ const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domi
 
 const MeuPerfil = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { getFuncoes } = useSettings();
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
