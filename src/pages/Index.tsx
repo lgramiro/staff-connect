@@ -27,6 +27,8 @@ const Index = () => {
     const isIOSStandalone = window.navigator.standalone === true;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || isIOSStandalone;
     
+    console.log("PWA Status:", { isMobile, isStandalone, isIOSStandalone });
+    
     if (isMobile && !isStandalone) {
       setShowInstallBanner(true);
     }
