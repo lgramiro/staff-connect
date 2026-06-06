@@ -20,11 +20,10 @@ const ProfissionalDashboard = () => {
   const { user, profile } = useAuth();
   const { data: prof } = useProfissionalQuery(user?.id);
   const { data: cands = [], isLoading: loading } = useCandidaturasByProfissional(prof?.id);
-  
-  if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><LoadingSpinner text="Carregando seu dashboard..." /></div></ProfissionalLayout>;
-  
   const atualizarCandidatura = useAtualizarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();
+  
+  if (loading) return <ProfissionalLayout><div className="flex justify-center py-12"><LoadingSpinner text="Carregando seu dashboard..." /></div></ProfissionalLayout>;
 
   const stats = {
     enviadas: cands.filter(c => c.status === "enviada").length,
