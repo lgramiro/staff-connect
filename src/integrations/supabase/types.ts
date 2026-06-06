@@ -124,6 +124,65 @@ export type Database = {
           },
         ]
       }
+      avaliacoes_estabelecimentos: {
+        Row: {
+          candidatura_id: string | null
+          comentario: string | null
+          created_at: string | null
+          estabelecimento_id: string | null
+          id: string
+          nota: number | null
+          profissional_id: string | null
+        }
+        Insert: {
+          candidatura_id?: string | null
+          comentario?: string | null
+          created_at?: string | null
+          estabelecimento_id?: string | null
+          id?: string
+          nota?: number | null
+          profissional_id?: string | null
+        }
+        Update: {
+          candidatura_id?: string | null
+          comentario?: string | null
+          created_at?: string | null
+          estabelecimento_id?: string | null
+          id?: string
+          nota?: number | null
+          profissional_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_estabelecimentos_candidatura_id_fkey"
+            columns: ["candidatura_id"]
+            isOneToOne: false
+            referencedRelation: "candidaturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_estabelecimentos_estabelecimento_id_fkey"
+            columns: ["estabelecimento_id"]
+            isOneToOne: false
+            referencedRelation: "estabelecimentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_estabelecimentos_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_estabelecimentos_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidaturas: {
         Row: {
           created_at: string
