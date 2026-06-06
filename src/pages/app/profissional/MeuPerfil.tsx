@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { ProfissionalLayout } from "@/components/layouts/ProfissionalLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domi
 
 const MeuPerfil = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { getFuncoes } = useSettings();
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
@@ -146,7 +148,7 @@ const MeuPerfil = () => {
 
 
   if (loading) return <ProfissionalLayout><LoadingSpinner /></ProfissionalLayout>;
-  if (!prof) return <ProfissionalLayout><EmptyState icon={UserX} title="Perfil não encontrado" description="Complete o onboarding para começar a usar o Tem Staff." /></ProfissionalLayout>;
+  if (!prof) return <ProfissionalLayout><EmptyState icon={UserX} title="Perfil não encontrado" description="Complete o onboarding para começar a usar o Tem Staff." action={{ buttonLabel: "Completar onboarding", onClick: () => navigate("/onboarding/profissional") }} /></ProfissionalLayout>;
 
   return (
     <ProfissionalLayout>
