@@ -311,6 +311,30 @@ const EstabelecimentoDashboard = () => {
               </div>
             </div>
 
+            {/* Ocorrências Recentes */}
+            {ocorrencias.length > 0 && (
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-destructive/10 rounded-lg">
+                    <History className="w-5 h-5 text-destructive" />
+                  </div>
+                  <h3 className="font-display font-semibold">Ocorrências Recentes</h3>
+                </div>
+                <div className="space-y-4">
+                  {ocorrencias.map((oc, i) => (
+                    <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/10">
+                      <AlertTriangle className="w-4 h-4 text-destructive mt-0.5" />
+                      <div>
+                        <p className="text-sm font-bold text-destructive uppercase tracking-wider">{oc.tipo.replace("_", " ")}</p>
+                        <p className="text-xs text-muted-foreground">{oc.descricao}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">{new Date(oc.created_at).toLocaleDateString("pt-BR")} • {new Date(oc.created_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Day detail */}
             {selectedDaySlots !== null && (
               <div className="bg-card rounded-xl p-6 border border-border animate-in fade-in slide-in-from-top-4">
