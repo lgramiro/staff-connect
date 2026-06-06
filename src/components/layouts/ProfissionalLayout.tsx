@@ -88,13 +88,13 @@ export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
 
       {/* Bottom Mobile Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 glass-strong border-t border-border md:hidden">
-        <div className="flex justify-around py-2">
+        <div className="flex py-2 overflow-x-auto no-scrollbar">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link key={item.path} to={item.path} className="flex flex-col items-center p-2">
+              <Link key={item.path} to={item.path} className="flex flex-col items-center px-2 py-1 flex-1 min-w-[64px]">
                 <item.icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-                <span className={`text-xs mt-1 ${isActive ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                <span className={`text-[10px] mt-1 truncate max-w-full ${isActive ? "text-primary font-medium" : "text-muted-foreground"}`}>
                   {item.label}
                 </span>
               </Link>
@@ -102,6 +102,7 @@ export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
           })}
         </div>
       </nav>
+
 
       {/* Main Content */}
       <main className="pt-20 pb-24 md:pb-8">
