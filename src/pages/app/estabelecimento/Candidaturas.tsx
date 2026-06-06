@@ -261,18 +261,116 @@ const Candidaturas = () => {
     </Dialog>
   );
 
+  const InviteDialog = ({ prof }: { prof: any }) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="hero" size="sm" className="w-full">Convidar para vaga</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Convidar {prof.nome}</DialogTitle>
+        </DialogHeader>
+        <div className="py-4 space-y-3">
+          <p className="text-sm text-muted-foreground">Selecione para qual vaga deseja convidar este profissional:</p>
+          {slotsAbertos.length === 0 ? (
+            <p className="text-sm font-medium text-destructive">Nenhuma vaga aberta disponível.</p>
+          ) : (
+            <div className="space-y-2">
+              {slotsAbertos.map(slot => (
+                <Button 
+                  key={slot.id} 
+                  variant="outline" 
+                  className="w-full justify-between h-auto py-3 px-4"
+                  onClick={() => handleConvidar(prof.id, slot.id)}
+                >
+                  <div className="text-left">
+                    <p className="font-bold">{slot.funcao}</p>
+                    <p className="text-xs text-muted-foreground">{slot.data} • {slot.horario_inicio?.slice(0,5)}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   const tabs = [
-    { id: "pendentes", label: "Pendentes", statuses: ["enviada"] },
+    { id: "pendentes", label: "Pendentes", statuses: ["enviada", "convidado"] },
     { id: "aprovadas", label: "Aprovadas", statuses: ["aprovada", "confirmada"] },
     { id: "concluidas", label: "Concluídas", statuses: ["concluida"] },
   ];
 
   return (
     <EstabelecimentoLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h1 className="font-display text-2xl font-bold">Candidaturas</h1>
+          <h1 className="font-display text-2xl font-bold">Candidaturas e Matching</h1>
         </div>
+
+        {/* Seção de Recomendados */}
+        {latestSlot && recomendados.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Star className="w-5 h-5 text-warning fill-warning" /> 
+                  Profissionais Recomendados
+                </h2>
+                <p className="text-sm text-muted-foreground">Matching baseado na sua última vaga: <strong>{latestSlot.funcao}</strong></p>
+              </div>
+            </div>
+            
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {recomendados.slice(0, 5).map((prof: any) => (
+                <div key={prof.id} className="bg-card rounded-xl p-4 border border-border hover:shadow-md transition-all flex flex-col relative group">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={cn(
+                      "absolute top-2 right-2 h-8 w-8 transition-colors",
+                      prof.is_favorito ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"
+                    )}
+                    onClick={() => toggleFavorito.mutate({ profId: prof.id, isFav: prof.is_favorito })}
+                  >
+                    <Heart className={cn("w-4 h-4", prof.is_favorito && "fill-current")} />
+                  </Button>
+
+                  <div className="flex flex-col items-center text-center mb-3">
+                    <Avatar className="w-16 h-16 mb-2 border-2 border-primary/10">
+                      <AvatarImage src={prof.foto_url} />
+                      <AvatarFallback>{prof.nome.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <p className="font-bold text-sm line-clamp-1">{prof.nome}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      {renderStars(Number(prof.trust_score || 0))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1 mb-3 justify-center min-h-[44px]">
+                    {prof.funcoes?.slice(0, 2).map((f: string) => (
+                      <Badge key={f} variant="secondary" className="text-[10px] px-1.5 py-0">{f}</Badge>
+                    ))}
+                  </div>
+
+                  <div className="mt-auto space-y-2">
+                    <p className="text-xs text-center font-medium text-muted-foreground">
+                      A partir de <span className="text-foreground">R$ {Number(prof.diaria_minima).toFixed(0)}</span>
+                    </p>
+                    <div className="grid grid-cols-1 gap-2">
+                      <ProfileDialog prof={prof} />
+                      <InviteDialog prof={prof} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Separator className="opacity-50" />
 
         {loading ? (
           <LoadingSpinner />
