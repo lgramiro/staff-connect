@@ -117,7 +117,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (savedRole && effectiveRoles.includes(savedRole)) {
           setActiveRoleState(savedRole);
         } else if (effectiveRoles.length > 0) {
-          setActiveRoleState(effectiveRoles[0]);
+          const firstRole = effectiveRoles[0];
+          setActiveRoleState(firstRole);
+          localStorage.setItem("temstaff_active_role", firstRole);
         }
       } else {
         setProfile(null);
