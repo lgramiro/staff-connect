@@ -37,11 +37,46 @@ import { cn } from "@/lib/utils";
 
 const Candidaturas = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: estab } = useEstabelecimentoQuery(user?.id);
   const { data: candidaturas = [], isLoading: loading } = useCandidaturasByEstabelecimento(estab?.id);
   
+  // Buscar slots abertos para o matching
+  const { data: slotsAbertos = [] } = useSlotsByEstabelecimento(estab?.id, { status: "aberto" });
+  
+  // Pegar o slot mais recente (pela data de criação ou data do evento)
+  const latestSlot = useMemo(() => {
+    if (slotsAbertos.length === 0) return null;
+    return [...slotsAbertos].sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+  }, [slotsAbertos]);
+
+  const { data: recomendados = [], isLoading: loadingMatching } = useMatchingProfissionais(latestSlot?.id, estab?.id);
+
   const atualizarCandidatura = useAtualizarCandidatura();
+  const criarCandidatura = useCriarCandidatura();
   const updateSlotStatus = useUpdateSlotStatus();
+
+  const toggleFavorito = useMutation({
+    mutationFn: async ({ profId, isFav }: { profId: string, isFav: boolean }) => {
+      if (isFav) {
+        await supabase
+          .from("favoritos_profissionais")
+          .delete()
+          .eq("estabelecimento_id", estab?.id)
+          .eq("profissional_id", profId);
+      } else {
+        await supabase
+          .from("favoritos_profissionais")
+          .insert({ estabelecimento_id: estab?.id, profissional_id: profId });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["matching-profissionais"] });
+      queryClient.invalidateQueries({ queryKey: ["favoritos-profissionais"] });
+      toast({ title: "Lista de favoritos atualizada" });
+    }
+  });
 
   const handleAction = async (id: string, status: string, slotId: string, profissionalId: string) => {
     atualizarCandidatura.mutate({ id, status });
@@ -71,6 +106,44 @@ const Candidaturas = () => {
         });
       }
     }
+  };
+
+  const handleConvidar = async (profId: string, slotId: string) => {
+    // Verificar se já existe candidatura
+    const { data: existing } = await supabase
+      .from("candidaturas")
+      .select("id")
+      .eq("slot_id", slotId)
+      .eq("profissional_id", profId)
+      .single();
+
+    if (existing) {
+      toast({ title: "Já existe uma candidatura ou convite para este profissional neste slot.", variant: "destructive" });
+      return;
+    }
+
+    criarCandidatura.mutate({
+      slot_id: slotId,
+      profissional_id: profId,
+    }, {
+      onSuccess: async (data) => {
+        // Atualizar status para convidado (o hook criarCandidatura insere como enviada por padrão)
+        await supabase.from("candidaturas").update({ status: "convidado" }).eq("id", data.id);
+        
+        const profUserId = await getProfissionalUserId(profId);
+        if (profUserId) {
+          await criarNotificacao({
+            user_id: profUserId,
+            titulo: "Você recebeu um convite!",
+            mensagem: "Um estabelecimento convidou você diretamente para uma vaga.",
+            tipo: "candidatura",
+            referencia_id: data.id,
+          });
+        }
+        toast({ title: "Convite enviado com sucesso!" });
+        queryClient.invalidateQueries({ queryKey: ["candidaturas"] });
+      }
+    });
   };
 
   const renderStars = (score: number) => {
