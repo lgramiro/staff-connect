@@ -2,7 +2,18 @@ import { useMemo, useState, useEffect } from "react";
 import { ProfissionalLayout } from "@/components/layouts/ProfissionalLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Briefcase, CheckCircle2, Clock, Star, CalendarClock, DollarSign, AlertCircle, History } from "lucide-react";
+import { 
+  Briefcase, 
+  CheckCircle2, 
+  Clock, 
+  Star, 
+  CalendarClock, 
+  DollarSign, 
+  AlertCircle, 
+  History, 
+  Zap,
+  MapPin
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCandidaturasByProfissional, useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
 import { useProfissionalQuery } from "@/hooks/queries/useProfissional";
@@ -13,7 +24,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { MapPin } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const VagasUrgentesSection = ({ profId, profFuncoes }: { profId: string | undefined, profFuncoes: string[] }) => {
   const [urgentes, setUrgentes] = useState<any[]>([]);
@@ -368,6 +379,8 @@ const ProfissionalDashboard = () => {
             </div>
           </div>
         </div>
+
+        <VagasUrgentesSection profId={prof?.id} profFuncoes={prof?.funcoes || []} />
 
         {/* Atalhos rápidos */}
         <div className="flex flex-col sm:flex-row gap-4 pt-2">
