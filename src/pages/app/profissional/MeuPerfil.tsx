@@ -148,7 +148,7 @@ const MeuPerfil = () => {
 
 
   if (loading) return <ProfissionalLayout><LoadingSpinner /></ProfissionalLayout>;
-  if (!prof) return <ProfissionalLayout><EmptyState icon={UserX} title="Perfil não encontrado" description="Complete o onboarding para começar a usar o Tem Staff." /></ProfissionalLayout>;
+  if (!prof) return <ProfissionalLayout><EmptyState icon={UserX} title="Perfil não encontrado" description="Complete o onboarding para começar a usar o Tem Staff." action={{ buttonLabel: "Completar onboarding", onClick: () => navigate("/onboarding/profissional") }} /></ProfissionalLayout>;
 
   return (
     <ProfissionalLayout>
