@@ -1,28 +1,34 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Building2, ChefHat, User, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type AppRole = "admin" | "estabelecimento" | "profissional";
 
-const roleConfig: Record<AppRole, { icon: typeof Building2; label: string; description: string; route: string }> = {
-  profissional: {
-    icon: User,
-    label: "Profissional",
-    description: "Buscar oportunidades de trabalho freelancer",
-    route: "/app/profissional",
+const roleConfig: Record<AppRole, { icon: typeof Building2; label: string; description: string; route: string; color: string; iconBg: string }> = {
+  admin: {
+    icon: Shield,
+    label: "Administrador",
+    description: "Painel administrativo completo",
+    route: "/admin",
+    color: "text-purple-600",
+    iconBg: "bg-purple-100",
   },
   estabelecimento: {
     icon: Building2,
     label: "Estabelecimento",
-    description: "Gerenciar escalas e contratar profissionais",
+    description: "Gerencie sua equipe e escalas",
     route: "/app/estabelecimento",
+    color: "text-orange-600",
+    iconBg: "bg-orange-100",
   },
-  admin: {
-    icon: Shield,
-    label: "Administrador",
-    description: "Gerenciar a plataforma Tem Staff",
-    route: "/admin",
+  profissional: {
+    icon: User,
+    label: "Profissional",
+    description: "Encontre oportunidades de trabalho",
+    route: "/app/profissional",
+    color: "text-green-600",
+    iconBg: "bg-green-100",
   },
 };
 
@@ -47,10 +53,10 @@ const RolePicker = () => {
 
         <div className="text-center space-y-2">
           <h2 className="font-display text-2xl font-bold text-foreground">
-            Olá, {profile?.nome || "usuário"}!
+            Como deseja entrar hoje?
           </h2>
           <p className="text-muted-foreground">
-            Escolha como deseja entrar
+            Olá, {profile?.nome || "usuário"}. Selecione um perfil para continuar.
           </p>
         </div>
 
@@ -63,13 +69,13 @@ const RolePicker = () => {
               <button
                 key={role}
                 onClick={() => handleSelect(role)}
-                className="w-full p-6 rounded-xl border-2 border-border bg-card hover:border-primary/50 hover:shadow-md transition-all flex items-center gap-4 text-left"
+                className="w-full p-6 rounded-xl border-2 border-border bg-card hover:border-primary/50 hover:shadow-md transition-all flex items-center gap-4 text-left group"
               >
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-7 h-7 text-primary" />
+                <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors", config.iconBg)}>
+                  <Icon className={cn("w-7 h-7", config.color)} />
                 </div>
-                <div>
-                  <p className="font-display font-bold text-lg text-foreground">{config.label}</p>
+                <div className="flex-1">
+                  <p className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors">{config.label}</p>
                   <p className="text-sm text-muted-foreground">{config.description}</p>
                 </div>
               </button>
