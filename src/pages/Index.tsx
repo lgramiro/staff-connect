@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
@@ -17,11 +18,37 @@ import heroImage from "@/assets/hero-image.jpg";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Index = () => {
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  
+  useEffect(() => {
+    // Check if not in standalone mode
+    // @ts-ignore - navigator.standalone is iOS only
+    const isIOSStandalone = window.navigator.standalone === true;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || isIOSStandalone;
+    
+    if (!isStandalone) {
+      setShowInstallBanner(true);
+    }
+  }, []);
+
   usePageTitle("Tem Staff — Conecte seu restaurante aos melhores profissionais");
+  
   return (
     <div className="min-h-screen bg-gradient-warm">
+      {showInstallBanner && (
+        <div className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-primary text-white px-8 py-2 text-center text-[10px] leading-tight font-medium shadow-lg animate-fade-down flex items-center justify-center">
+          <span>📱 Instale o Tem Staff: toque em <b>Compartilhar</b> → <b>Adicionar à tela inicial</b></span>
+          <button 
+            onClick={() => setShowInstallBanner(false)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 opacity-70 hover:opacity-100"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass-strong">
+      <header className={`fixed ${showInstallBanner ? 'top-8 md:top-0' : 'top-0'} left-0 right-0 z-50 glass-strong transition-all duration-300`}>
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-hero flex items-center justify-center shadow-glow">
