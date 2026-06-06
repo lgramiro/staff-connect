@@ -30,6 +30,7 @@ const EstabelecimentoCandidaturas = lazy(() => import("./pages/app/estabelecimen
 const Hoje = lazy(() => import("./pages/app/estabelecimento/Hoje"));
 const Avaliar = lazy(() => import("./pages/app/estabelecimento/Avaliar"));
 const PlanosComparar = lazy(() => import("./pages/app/estabelecimento/PlanosComparar"));
+const Favoritos = lazy(() => import("./pages/app/estabelecimento/Favoritos"));
 
 // Profissional routes
 const ProfissionalDashboard = lazy(() => import("./pages/app/profissional/Dashboard"));
@@ -102,6 +103,7 @@ const App = () => (
               <Route path="/app/estabelecimento/hoje" element={<ProtectedRoute allowedRoles={["estabelecimento"]}><Hoje /></ProtectedRoute>} />
               <Route path="/app/estabelecimento/avaliar" element={<ProtectedRoute allowedRoles={["estabelecimento"]}><Avaliar /></ProtectedRoute>} />
               <Route path="/app/estabelecimento/planos" element={<ProtectedRoute allowedRoles={["estabelecimento"]}><PlanosComparar /></ProtectedRoute>} />
+              <Route path="/app/estabelecimento/favoritos" element={<ProtectedRoute allowedRoles={["estabelecimento"]}><Favoritos /></ProtectedRoute>} />
 
               {/* Profissional Routes */}
               <Route path="/app/profissional" element={<ProtectedRoute allowedRoles={["profissional"]}><ProfissionalDashboard /></ProtectedRoute>} />
