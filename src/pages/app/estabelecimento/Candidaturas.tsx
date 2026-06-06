@@ -1,18 +1,39 @@
+import { useState, useMemo } from "react";
 import { EstabelecimentoLayout } from "@/components/layouts/EstabelecimentoLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, User, Star, Instagram, Linkedin, Globe, MapPin, Briefcase, Inbox } from "lucide-react";
+import { 
+  CheckCircle2, 
+  XCircle, 
+  User, 
+  Star, 
+  Instagram, 
+  Linkedin, 
+  Globe, 
+  MapPin, 
+  Briefcase, 
+  Inbox, 
+  Heart,
+  ChevronRight,
+  Send,
+  ExternalLink
+} from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { criarNotificacao, getProfissionalUserId } from "@/lib/notificacoes";
 import { useEstabelecimentoQuery } from "@/hooks/queries/useEstabelecimento";
-import { useCandidaturasByEstabelecimento, useAtualizarCandidatura } from "@/hooks/queries/useCandidaturas";
-import { useUpdateSlotStatus } from "@/hooks/queries/useSlots";
+import { useCandidaturasByEstabelecimento, useAtualizarCandidatura, useCriarCandidatura } from "@/hooks/queries/useCandidaturas";
+import { useSlotsByEstabelecimento, useUpdateSlotStatus } from "@/hooks/queries/useSlots";
+import { useMatchingProfissionais } from "@/hooks/queries/useMatching";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const Candidaturas = () => {
   const { user } = useAuth();
