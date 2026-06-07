@@ -400,8 +400,3 @@ const Treinamentos = () => {
 };
 
 export default Treinamentos;
-    </div>
-  );
-};
-
-export default Treinamentos;
