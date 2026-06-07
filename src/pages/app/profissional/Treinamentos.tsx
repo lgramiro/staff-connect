@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useTreinamentos, useTreinamentosConcluidos, useMarcarConcluido } from "@/hooks/queries/useTreinamentos";
 import { useProfissionalQuery, useProfissionalMutation } from "@/hooks/queries/useProfissional";
