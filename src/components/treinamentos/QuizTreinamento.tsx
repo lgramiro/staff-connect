@@ -64,7 +64,7 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
         {percentual >= 70 ? (
           <div className="space-y-4">
             <p className="text-green-600 font-bold">Parabéns! Você foi aprovado.</p>
-            <Button onClick={() => onAprovado(acertos)} className="w-full">Acessar o Tem Staff</Button>
+            <Button onClick={() => onAprovado(acertos, totalQuestoes)} className="w-full">Acessar o Tem Staff</Button>
           </div>
         ) : (
           <div className="space-y-4">
