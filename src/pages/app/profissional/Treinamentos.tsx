@@ -165,8 +165,8 @@ const Treinamentos = () => {
     }
   };
 
-  const handleAprovadoQuiz = async (acertos: number) => {
-    const percentualResult = (acertos / 10) * 100;
+  const handleAprovadoQuiz = async (acertos: number, totalQuestoes: number) => {
+    const percentualResult = (acertos / totalQuestoes) * 100;
     try {
       await profissionalMutation.mutateAsync({
         treinamento_concluido: true,
