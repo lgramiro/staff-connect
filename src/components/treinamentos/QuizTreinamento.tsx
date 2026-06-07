@@ -43,9 +43,14 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
   const [finalizado, setFinalizado] = useState(false);
 
   const carregarQuestoes = () => {
-    const gerais = [...bancoGeral].sort(() => 0.5 - Math.random()).slice(0, 5);
-    const funcoes = (bancoFuncoes[funcao] || []).sort(() => 0.5 - Math.random()).slice(0, 5);
-    setQuestoes([...gerais, ...funcoes].sort(() => 0.5 - Math.random()));
+    const todasGerais = [...bancoGeral].sort(() => 0.5 - Math.random());
+    const todasFuncao = (bancoFuncoes[funcao] || []).sort(() => 0.5 - Math.random());
+    
+    // Pega as 8 primeiras gerais e as 2 primeiras da função para totalizar 10
+    const selecionadasGerais = todasGerais.slice(0, 8);
+    const selecionadasFuncao = todasFuncao.slice(0, 2);
+    
+    setQuestoes([...selecionadasGerais, ...selecionadasFuncao].sort(() => 0.5 - Math.random()));
     setIndice(0);
     setAcertos(0);
     setFinalizado(false);
