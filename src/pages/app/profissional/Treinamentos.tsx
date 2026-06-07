@@ -92,7 +92,8 @@ const Treinamentos = () => {
       titulo: selectedTreinamento.titulo, 
       icone: "BookOpen", 
       paragrafos: [selectedTreinamento.descricao || "Leia com atenção e clique em Concluir quando estiver pronto."],
-      lista: []
+      lista: [],
+      paragrafos2: []
     }
   ]) : [];
 
