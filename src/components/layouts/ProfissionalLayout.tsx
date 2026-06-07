@@ -13,6 +13,7 @@ import {
   Star,
   Trophy,
   Menu,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ const desktopNavItems: NavItem[] = [
   { icon: User, label: "Perfil", path: "/app/profissional/perfil" },
   { icon: Trophy, label: "Ranking", path: "/app/profissional/ranking" },
   { icon: Star, label: "Avaliar", path: "/app/profissional/avaliacoes" },
+  { icon: BookOpen, label: "Treinamentos", path: "/app/profissional/treinamentos" },
 ];
 
 const primaryMobileItems: NavItem[] = [
@@ -45,6 +47,7 @@ const moreMenuItems: NavItem[] = [
   { icon: FileText, label: "Documentos", path: "/app/profissional/documentos" },
   { icon: Trophy, label: "Ranking", path: "/app/profissional/ranking" },
   { icon: Star, label: "Avaliações", path: "/app/profissional/avaliacoes" },
+  { icon: BookOpen, label: "Treinamentos", path: "/app/profissional/treinamentos" },
 ];
 
 export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
