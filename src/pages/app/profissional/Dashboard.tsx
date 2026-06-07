@@ -283,7 +283,7 @@ const ProfissionalDashboard = () => {
               <h3 className="font-semibold text-sm">No-Shows (30d)</h3>
             </div>
             <p className="text-3xl font-display font-bold mb-1">{ocorrenciasRecentes}</p>
-            <Link to="/app/profissional/historico" className="text-xs text-primary hover:underline flex items-center gap-1">
+            <Link to="/app/profissional/candidaturas" className="text-xs text-primary hover:underline flex items-center gap-1">
               <History className="w-3 h-3" /> Ver histórico
             </Link>
           </div>
