@@ -20,7 +20,9 @@ const bancoGeral: Questao[] = [
   { id: 5, enunciado: "O que caracteriza a zona de perigo na segurança alimentar?", alternativas: [{letra: 'A', texto: 'Entre 5°C e 60°C, onde bactérias se multiplicam rapidamente', correta: true}, {letra: 'B', texto: 'Abaixo de 0°C', correta: false}, {letra: 'C', texto: 'Acima de 100°C', correta: false}, {letra: 'D', texto: 'Entre 80°C e 100°C', correta: false}], banco: 'geral' },
   { id: 6, enunciado: "Qual deve ser a aparência das unhas de profissionais que manipulam alimentos?", alternativas: [{letra: 'A', texto: 'Longas e decoradas', correta: false}, {letra: 'B', texto: 'Curtas, limpas e sem esmalte', correta: true}, {letra: 'C', texto: 'Com esmalte claro', correta: false}, {letra: 'D', texto: 'Com unhas postiças', correta: false}], banco: 'geral' },
   { id: 7, enunciado: "Quando ocorre a avaliação após um serviço no Tem Staff?", alternativas: [{letra: 'A', texto: 'O profissional avalia o estabelecimento', correta: false}, {letra: 'B', texto: 'O estabelecimento avalia o profissional com nota de 1 a 5 estrelas', correta: true}, {letra: 'C', texto: 'Nunca ocorre', correta: false}, {letra: 'D', texto: 'Automaticamente', correta: false}], banco: 'geral' },
-  { id: 8, enunciado: "Qual é a conduta correta ao ter um conflito com outro funcionário durante o serviço?", alternativas: [{letra: 'A', texto: 'Discutir na frente dos clientes', correta: false}, {letra: 'B', texto: 'Manter a calma durante o serviço e registrar pelo app após o turno', correta: true}, {letra: 'C', texto: 'Ir embora imediatamente', correta: false}, {letra: 'D', texto: 'Chamar a polícia', correta: false}], banco: 'geral' }
+  { id: 8, enunciado: "Qual é a conduta correta ao ter um conflito com outro funcionário durante o serviço?", alternativas: [{letra: 'A', texto: 'Discutir na frente dos clientes', correta: false}, {letra: 'B', texto: 'Manter a calma durante o serviço e registrar pelo app após o turno', correta: true}, {letra: 'C', texto: 'Ir embora imediatamente', correta: false}, {letra: 'D', texto: 'Chamar a polícia', correta: false}], banco: 'geral' },
+  { id: 9, enunciado: "O que significa o termo 'Mise en place'?", alternativas: [{letra: 'A', texto: 'Limpar as mesas', correta: false}, {letra: 'B', texto: 'Tudo em seu lugar - organização prévia de ingredientes e utensílios', correta: true}, {letra: 'C', texto: 'Finalizar o prato', correta: false}, {letra: 'D', texto: 'Lavar a louça', correta: false}], banco: 'geral' },
+  { id: 10, enunciado: "Qual a forma correta de higienizar as mãos?", alternativas: [{letra: 'A', texto: 'Apenas passar água rápida', correta: false}, {letra: 'B', texto: 'Usar sabão neutro e esfregar por pelo menos 20 segundos, incluindo punhos e entre os dedos', correta: true}, {letra: 'C', texto: 'Secar na própria roupa', correta: false}, {letra: 'D', texto: 'Usar apenas álcool em gel', correta: false}], banco: 'geral' }
 ];
 
 const bancoFuncoes: Record<string, Questao[]> = {
@@ -33,7 +35,7 @@ const bancoFuncoes: Record<string, Questao[]> = {
   sommelier: [{ id: 701, enunciado: "Qual é o protocolo correto ao apresentar uma garrafa de vinho?", alternativas: [{letra: 'A', texto: 'Já aberta', correta: false}, {letra: 'B', texto: 'Apresentar fechada, confirmar o pedido, abrir na frente do cliente e oferecer para provar', correta: true}, {letra: 'C', texto: 'Servir diretamente na taça', correta: false}, {letra: 'D', texto: 'Deixar na mesa para o cliente abrir', correta: false}], banco: 'sommelier' }, { id: 702, enunciado: "Qual é a temperatura ideal para servir espumante ou champanhe?", alternativas: [{letra: 'A', texto: '15-20°C', correta: false}, {letra: 'B', texto: '6-8°C', correta: true}, {letra: 'C', texto: 'Temperatura ambiente', correta: false}, {letra: 'D', texto: 'Acima de 25°C', correta: false}], banco: 'sommelier' }]
 };
 
-export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onAprovado: (acertos: number) => void }) => {
+export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onAprovado: (acertos: number, total: number) => void }) => {
   const [questoes, setQuestoes] = useState<Questao[]>([]);
   const [indice, setIndice] = useState(0);
   const [selecionada, setSelecionada] = useState<string | null>(null);
@@ -55,15 +57,16 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
   }, [funcao]);
 
   if (finalizado) {
-    const percentual = (acertos / 10) * 100;
+    const totalQuestoes = questoes.length || 1;
+    const percentual = (acertos / totalQuestoes) * 100;
     return (
       <Card className="text-center p-6 space-y-4">
         <h2 className="text-xl font-bold">Resultado</h2>
-        <p className="text-lg">{acertos} de 10 acertos — {percentual}%</p>
+        <p className="text-lg">{acertos} de {totalQuestoes} acertos — {Math.round(percentual)}%</p>
         {percentual >= 70 ? (
           <div className="space-y-4">
             <p className="text-green-600 font-bold">Parabéns! Você foi aprovado.</p>
-            <Button onClick={() => onAprovado(acertos)} className="w-full">Acessar o Tem Staff</Button>
+            <Button onClick={() => onAprovado(acertos, totalQuestoes)} className="w-full">Acessar o Tem Staff</Button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -78,14 +81,16 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
   const q = questoes[indice];
   if (!q) return null;
 
+  const totalQuestoes = questoes.length;
+
   return (
     <Card className="p-6 space-y-6">
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span>Questão {indice + 1} de 10</span>
-          <span>{Math.round(((indice) / 10) * 100)}%</span>
+          <span>Questão {indice + 1} de {totalQuestoes}</span>
+          <span>{Math.round(((indice) / totalQuestoes) * 100)}%</span>
         </div>
-        <Progress value={(indice / 10) * 100} />
+        <Progress value={(indice / totalQuestoes) * 100} />
       </div>
       
       <h3 className="text-lg font-medium">{q.enunciado}</h3>
@@ -95,10 +100,10 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
           <Button 
             key={alt.letra}
             variant={selecionada === alt.letra ? "default" : "outline"}
-            className="w-full justify-start text-left"
+            className="w-full justify-start text-left h-auto py-3 px-4 whitespace-normal"
             onClick={() => setSelecionada(alt.letra)}
           >
-            {alt.letra}. {alt.texto}
+            <span className="font-bold mr-2">{alt.letra}.</span> {alt.texto}
           </Button>
         ))}
       </div>
@@ -108,11 +113,15 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
         disabled={!selecionada} 
         onClick={() => {
           if (q.alternativas.find(a => a.letra === selecionada)?.correta) setAcertos(prev => prev + 1);
-          if (indice === 9) setFinalizado(true);
-          else { setIndice(prev => prev + 1); setSelecionada(null); }
+          if (indice === totalQuestoes - 1) {
+            setFinalizado(true);
+          } else { 
+            setIndice(prev => prev + 1); 
+            setSelecionada(null); 
+          }
         }}
       >
-        {indice === 9 ? "Ver Resultado" : "Próxima"}
+        {indice === totalQuestoes - 1 ? "Ver Resultado" : "Próxima"}
       </Button>
     </Card>
   );
