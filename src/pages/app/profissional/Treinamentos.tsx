@@ -86,6 +86,42 @@ const conteudoTreinamentos: Record<string, SlideContent[]> = {
   "Higiene na Cozinha": [
     { titulo: "Protocolos de Higiene", icone: "Droplets", paragrafos: ["A segurança do cliente começa na sua mão."], lista: ["Use touca cobrindo todo o cabelo", "Mantenha unhas curtas e sem esmalte", "Lave as mãos a cada troca de tarefa"] }
   ]
+  "Cozinheiro: Comunicação na Brigada": [
+    { titulo: "Comunicação na Brigada", icone: "MessageSquare", paragrafos: ["A cozinha funciona como uma orquestra — cada um no seu papel, todos no mesmo ritmo.", "Como se comunicar bem:", "• Confirme em voz alta os pedidos recebidos", "• Avise sempre 'atrás' ao passar por alguém com objetos quentes ou cortantes", "• Mantenha o ritmo de saída dos pratos sincronizado com o tempo estimado", "• Registre para o próximo turno qualquer insumo que esteja acabando"], paragrafos2: ["O cozinheiro temporário deixa a cozinha melhor do que encontrou."] }
+  ],
+  "Cozinheiro: Velocidade": [
+    { titulo: "Velocidade na Cozinha", icone: "Zap", paragrafos: ["Velocidade sem desperdício e com padrão."], lista: ["Prepare-se antes do movimento", "Organize a bancada para minimizar movimentos inúteis", "Mantenha o foco em um prato de cada vez se necessário, mas com fluxo contínuo"] }
+  ],
+  "Cozinheiro: Limpeza": [
+    { titulo: "Limpeza na Cozinha", icone: "Droplets", paragrafos: ["A limpeza é constante, não apenas no final do serviço."], lista: ["Limpe a bancada conforme termina cada etapa", "Mantenha o chão seco", "Descarte o lixo corretamente para evitar contaminação cruzada"] }
+  ],
+  "Garçom: Conhecimento do Cardápio": [
+    { titulo: "Conhecimento do Cardápio", icone: "BookOpen", paragrafos: ["O garçom que conhece o que vende vende mais e melhor."], lista: ["Conheça os ingredientes de todos os pratos", "Saiba identificar alérgenos", "Conheça os harmonizamentos básicos: qual vinho ou bebida vai bem com cada prato"], paragrafos2: ["Sugira com convicção: 'Nosso risoto de funghi está excelente hoje'."] }
+  ],
+  "Garçom: Mise en Place": [
+    { titulo: "Mise en Place (Garçom)", icone: "LayoutGrid", paragrafos: ["A preparação do salão é o alicerce do serviço."], lista: ["Verifique toalhas, talheres e taças", "Certifique-se de que o cardápio está limpo e atualizado", "Organize os aparadores com materiais de reposição"] }
+  ],
+  "Garçom: Fechamento": [
+    { titulo: "Fechamento (Garçom)", icone: "ClipboardCheck", paragrafos: ["O final do serviço é tão importante quanto o início."], lista: ["Organize as cadeiras e mesas para o dia seguinte", "Limpe os aparadores", "Verifique se restou algum item pendente no sistema"] }
+  ],
+  "Recepcionista: Boas-vindas": [
+    { titulo: "Primeiro Contato e Boas-vindas", icone: "UserCheck", paragrafos: ["A recepção é a alma do estabelecimento. O sorriso é o seu primeiro uniforme."], lista: ["Cumprimente o cliente imediatamente ao entrar", "Identifique reservas ou encaixes rapidamente", "Acompanhe o cliente até a mesa, nunca aponte de longe"] }
+  ],
+  "Recepcionista: Comunicação": [
+    { titulo: "Comunicação entre Salão e Cozinha", icone: "MessageSquare", paragrafos: ["A recepção é a central de informações do estabelecimento."], lista: ["Informe o maître ou garçom quando uma mesa de reserva especial chegar", "Avise o bar sobre pedidos de welcome drink se houver", "Mantenha o sistema de reservas atualizado em tempo real"] }
+  ],
+  "Recepcionista: Postura": [
+    { titulo: "Postura e Atitude", icone: "ShieldCheck", paragrafos: ["Seu comportamento reflete o padrão da casa."], lista: ["Postura ereta o tempo todo", "Acessórios sóbrios", "Esteja sempre no posto ou visível", "Nunca coma ou beba na área de recepção"] }
+  ],
+  "Chapeiro: Organização": [
+    { titulo: "Organização e Segurança com a Chapa", icone: "LayoutGrid", paragrafos: ["Segurança e eficiência andam juntas na chapa."], lista: ["Mantenha a chapa limpa entre um pedido e outro", "Verifique a temperatura constantemente", "Não pressione a carne com espátula para não ressecar"] }
+  ],
+  "Cumim: Função e Limites": [
+    { titulo: "Função e Limites do Cumim", icone: "UserPlus", paragrafos: ["O apoio essencial que garante a fluidez do serviço."], lista: ["Auxilie o garçom na entrega e retirada", "Mantenha o aparador organizado", "Não tome pedidos se não tiver autonomia para isso"] }
+  ],
+  "Sommelier: Apresentação": [
+    { titulo: "Apresentação e Serviço do Vinho", icone: "GlassWater", paragrafos: ["Elegância e técnica na ponta dos dedos."], lista: ["Apresente o rótulo ao cliente antes de abrir", "Sirva a prova ao anfitrião", "Mantenha a temperatura correta da garrafa no balde"] }
+  ]
 };
 
 const Treinamentos = () => {
