@@ -7,11 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, CheckCircle2, Circle, PlayCircle, Award, AlertCircle } from "lucide-react";
+import { BookOpen, CheckCircle2, Circle, PlayCircle, Award, AlertCircle, Check } from "lucide-react";
 import { toast } from "sonner";
 import { QuizTreinamento } from "@/components/treinamentos/QuizTreinamento";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 const Treinamentos = () => {
   usePageTitle("Treinamentos | Tem Staff");
@@ -151,35 +150,45 @@ const Treinamentos = () => {
                   <Badge variant="outline" className="text-[10px]">{t.duracao_minutos} min</Badge>
                 </div>
 
-                <div className="flex gap-2">
-                  {t.url_video ? (
-                    <Button 
-                      className="w-full gap-2" 
-                      variant={isConcluido ? "outline" : "default"}
-                      onClick={() => window.open(t.url_video, '_blank')}
-                    >
-                      <PlayCircle className="w-4 h-4" />
-                      Assistir
-                    </Button>
-                  ) : !isConcluido && (
-                    <Button 
-                      className="w-full" 
-                      onClick={() => handleMarcarConcluido(t.id)}
-                      disabled={mutation.isPending}
-                    >
-                      Marcar como lido
-                    </Button>
-                  )}
-                  {t.url_video && !isConcluido && (
-                    <Button 
-                      variant="outline"
-                      size="icon"
-                      title="Marcar como concluído"
-                      onClick={() => handleMarcarConcluido(t.id)}
-                      disabled={mutation.isPending}
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                    </Button>
+                <div className="flex flex-col gap-2">
+                  {isConcluido ? (
+                    <Badge className="w-full justify-center bg-green-100 text-green-700 border-green-200 py-2">
+                      <Check className="w-4 h-4 mr-2" />
+                      Concluído
+                    </Badge>
+                  ) : (
+                    <>
+                      {t.url_video ? (
+                        <>
+                          <Button 
+                            className="w-full gap-2" 
+                            onClick={() => window.open(t.url_video, '_blank')}
+                          >
+                            <PlayCircle className="w-4 h-4" />
+                            Assistir
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => handleMarcarConcluido(t.id)}
+                            disabled={mutation.isPending}
+                          >
+                            {mutation.isPending ? "Salvando..." : "Marcar como concluído"}
+                          </Button>
+                        </>
+                      ) : (
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => handleMarcarConcluido(t.id)}
+                          disabled={mutation.isPending}
+                        >
+                          {mutation.isPending ? "Salvando..." : "Marcar como lido"}
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </CardContent>
