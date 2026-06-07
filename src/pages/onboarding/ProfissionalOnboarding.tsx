@@ -65,8 +65,26 @@ const ProfissionalOnboarding = () => {
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Cadastro concluído!", description: "Seu perfil foi criado com sucesso." });
-      navigate("/app/profissional");
+      toast({ 
+        title: "Cadastro concluído!", 
+        description: "Seu perfil foi criado com sucesso. Complete o treinamento para começar." 
+      });
+      
+      const { data } = await supabase
+        .from("profissionais")
+        .select("treinamento_concluido")
+        .eq("user_id", user.id)
+        .single();
+        
+      if (data?.treinamento_concluido) {
+        navigate("/app/profissional");
+      } else {
+        toast({
+          title: "Treinamento Obrigatório",
+          description: "Antes de começar, complete o treinamento obrigatório da plataforma."
+        });
+        navigate("/app/profissional/treinamentos");
+      }
     }
   };
 

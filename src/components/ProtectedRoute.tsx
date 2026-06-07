@@ -1,6 +1,9 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,10 +11,32 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { session, profile, loading, activeRole, userRoles } = useAuth();
+  const { session, profile, loading, activeRole, userRoles, user } = useAuth();
   const location = useLocation();
+  const [trainingLoading, setTrainingLoading] = useState(false);
+  const [treinamentoConcluido, setTreinamentoConcluido] = useState<boolean | null>(null);
 
-  if (loading) {
+  useEffect(() => {
+    const checkTraining = async () => {
+      if (activeRole === "profissional" && user?.id && !location.pathname.includes("/app/profissional/treinamentos")) {
+        setTrainingLoading(true);
+        const { data, error } = await supabase
+          .from("profissionais")
+          .select("treinamento_concluido")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        
+        if (data) {
+          setTreinamentoConcluido(data.treinamento_concluido);
+        }
+        setTrainingLoading(false);
+      }
+    };
+
+    checkTraining();
+  }, [activeRole, user?.id, location.pathname]);
+
+  if (loading || trainingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <LoadingSpinner size="lg" text="Verificando acesso..." />
@@ -45,6 +70,14 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
       }
       return <Navigate to="/escolher-perfil" replace />;
     }
+  }
+
+  if (activeRole === "profissional" && 
+      treinamentoConcluido === false && 
+      location.pathname.startsWith("/app/profissional") && 
+      !location.pathname.includes("/app/profissional/treinamentos")) {
+    toast.info("Complete o treinamento obrigatório para acessar a plataforma");
+    return <Navigate to="/app/profissional/treinamentos" replace />;
   }
 
   return <>{children}</>;
