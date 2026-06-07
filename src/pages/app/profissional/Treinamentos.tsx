@@ -189,7 +189,7 @@ const Treinamentos = () => {
         </div>
         <QuizTreinamento 
           funcao={profissional?.funcoes?.[0] || "garcom"} 
-          onAprovado={(acertos) => handleAprovadoQuiz(acertos)} 
+          onAprovado={(acertos, total) => handleAprovadoQuiz(acertos, total)} 
         />
       </div>
     );
