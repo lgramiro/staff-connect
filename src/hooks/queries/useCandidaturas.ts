@@ -20,7 +20,7 @@ export const useCandidaturasByProfissional = (profissionalId: string | undefined
         .eq("profissional_id", profissionalId);
 
       if (error) {
-        console.error("Erro ao buscar candidaturas:", error);
+        if (import.meta.env.DEV) console.error("Erro ao buscar candidaturas");
         throw error;
       }
       return data;
@@ -34,7 +34,6 @@ export const useCandidaturasByEstabelecimento = (estabelecimentoId: string | und
     queryKey: ["candidaturas", "estabelecimento", estabelecimentoId],
     queryFn: async () => {
       if (!estabelecimentoId) return [];
-      console.log("[useCandidaturasByEstabelecimento] Fetching for estabId:", estabelecimentoId);
       const { data, error } = await supabase
         .from("candidaturas")
         .select(`
@@ -48,7 +47,7 @@ export const useCandidaturasByEstabelecimento = (estabelecimentoId: string | und
         .eq("slots.estabelecimento_id", estabelecimentoId);
 
       if (error) {
-        console.error("Erro ao buscar candidaturas do estabelecimento:", error);
+        if (import.meta.env.DEV) console.error("Erro ao buscar candidaturas do estabelecimento");
         throw error;
       }
       return data;

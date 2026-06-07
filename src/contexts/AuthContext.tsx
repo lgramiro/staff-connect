@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return normalizedProfile;
       }
     } catch (err) {
-      console.error("[AuthContext] Error fetching profile:", err);
+      if (import.meta.env.DEV) console.error("[AuthContext] Error fetching profile:", err);
     }
     return null;
   };
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq("user_id", userId);
       return (data || []).map((r: any) => normalizeRole(r.role));
     } catch (err) {
-      console.error("[AuthContext] Error fetching roles:", err);
+      if (import.meta.env.DEV) console.error("[AuthContext] Error fetching roles:", err);
       return [];
     }
   };
@@ -137,7 +137,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("[AuthContext] Auth event:", event);
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
         initialize(session);
       } else if (event === "SIGNED_OUT") {
@@ -170,7 +169,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         await (supabase.rpc as any)('setup_user_profile', { p_nome: nome, p_role: role });
       } catch (e) {
-        console.log('[AuthContext] Profile may have been created by trigger already');
+        // Profile may have been created by trigger already
       }
     }
     
