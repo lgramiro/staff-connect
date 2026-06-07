@@ -83,7 +83,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/seed-teste" element={<SeedTeste />} />
+              <Route path="/seed-teste" element={<ProtectedRoute allowedRoles={["admin"]}><SeedTeste /></ProtectedRoute>} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/escolher-perfil" element={
                 <ProtectedRoute><RolePicker /></ProtectedRoute>
