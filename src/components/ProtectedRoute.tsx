@@ -1,9 +1,8 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,28 +12,22 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { session, profile, loading, activeRole, userRoles, user } = useAuth();
   const location = useLocation();
-  const [trainingLoading, setTrainingLoading] = useState(false);
-  const [treinamentoConcluido, setTreinamentoConcluido] = useState<boolean | null>(null);
+  const { data: profData, isLoading: trainingLoading } = useQuery({
+    queryKey: ["profissional-training-check", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profissionais")
+        .select("treinamento_concluido")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: activeRole === "profissional" && !!user?.id && !location.pathname.includes("/app/profissional/treinamentos"),
+    staleTime: 1000 * 60 * 5,
+  });
 
-  useEffect(() => {
-    const checkTraining = async () => {
-      if (activeRole === "profissional" && user?.id && !location.pathname.includes("/app/profissional/treinamentos")) {
-        setTrainingLoading(true);
-        const { data, error } = await supabase
-          .from("profissionais")
-          .select("treinamento_concluido")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        
-        if (data) {
-          setTreinamentoConcluido(data.treinamento_concluido);
-        }
-        setTrainingLoading(false);
-      }
-    };
-
-    checkTraining();
-  }, [activeRole, user?.id, location.pathname]);
+  const treinamentoConcluido = profData?.treinamento_concluido ?? null;
 
   if (loading || trainingLoading) {
     return (
@@ -76,7 +69,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
       treinamentoConcluido === false && 
       location.pathname.startsWith("/app/profissional") && 
       !location.pathname.includes("/app/profissional/treinamentos")) {
-    toast.info("Complete o treinamento obrigatório para acessar a plataforma");
+    
     return <Navigate to="/app/profissional/treinamentos" replace />;
   }
 
