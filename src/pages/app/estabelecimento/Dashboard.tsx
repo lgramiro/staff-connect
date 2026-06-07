@@ -56,8 +56,9 @@ const EstabelecimentoDashboard = () => {
     const loadPendentes = async () => {
       const { data: concluida } = await supabase
         .from("candidaturas")
-        .select("id")
-        .eq("status", "concluida");
+        .select("id, slots!inner(estabelecimento_id)")
+        .eq("status", "concluida")
+        .eq("slots.estabelecimento_id", estab.id);
       
       const { data: avaliacoes } = await supabase
         .from("avaliacoes")
@@ -87,7 +88,7 @@ const EstabelecimentoDashboard = () => {
     if (!cands.length) return [];
     
     // Filtra candidaturas concluídas
-    const concluidas = cands.filter(c => c.status === "concluido" && c.profissionais_publicos);
+    const concluidas = cands.filter(c => c.status === "concluída" && c.profissionais_publicos);
     
     // Agrupa por profissional
     const profMap: Record<string, { nome: string; score: number; count: number }> = {};
