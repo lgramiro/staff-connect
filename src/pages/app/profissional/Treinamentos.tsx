@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useTreinamentos, useTreinamentosConcluidos, useMarcarConcluido } from "@/hooks/queries/useTreinamentos";
 import { useProfissionalQuery, useProfissionalMutation } from "@/hooks/queries/useProfissional";
@@ -7,11 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   BookOpen, CheckCircle2, Circle, Award, AlertCircle, Check, 
   ChevronLeft, ChevronRight, PartyPopper, Star, Clock, AlertTriangle, 
   UserCheck, Shirt, ShieldCheck, MessageSquare, TrendingUp,
-  Thermometer, ShieldAlert, LucideIcon, Droplets
+  Thermometer, ShieldAlert, LucideIcon, Droplets, Utensils,
+  ClipboardCheck, LayoutGrid, GlassWater, Lock, HandMetal,
+  UserPlus, ListChecks, Info, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import { QuizTreinamento } from "@/components/treinamentos/QuizTreinamento";
