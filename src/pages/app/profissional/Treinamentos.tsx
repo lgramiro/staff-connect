@@ -13,7 +13,7 @@ const Treinamentos = () => {
   usePageTitle("Treinamentos | Tem Staff");
   const { user } = useAuth();
   const { data: profissional } = useProfissionalQuery(user?.id);
-  const { data: treinamentos, isLoading: loadingTreinamentos } = useTreinamentos(profissional?.especialidade);
+  const { data: treinamentos, isLoading: loadingTreinamentos } = useTreinamentos(profissional?.funcoes?.[0]);
   const { data: concluidos, isLoading: loadingConcluidos } = useTreinamentosConcluidos();
   const mutation = useMarcarConcluido();
 
