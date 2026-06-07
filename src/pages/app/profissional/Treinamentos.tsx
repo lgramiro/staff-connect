@@ -85,7 +85,7 @@ const conteudoTreinamentos: Record<string, SlideContent[]> = {
   ],
   "Higiene na Cozinha": [
     { titulo: "Protocolos de Higiene", icone: "Droplets", paragrafos: ["A segurança do cliente começa na sua mão."], lista: ["Use touca cobrindo todo o cabelo", "Mantenha unhas curtas e sem esmalte", "Lave as mãos a cada troca de tarefa"] }
-  ]
+  ],
   "Cozinheiro: Comunicação na Brigada": [
     { titulo: "Comunicação na Brigada", icone: "MessageSquare", paragrafos: ["A cozinha funciona como uma orquestra — cada um no seu papel, todos no mesmo ritmo.", "Como se comunicar bem:", "• Confirme em voz alta os pedidos recebidos", "• Avise sempre 'atrás' ao passar por alguém com objetos quentes ou cortantes", "• Mantenha o ritmo de saída dos pratos sincronizado com o tempo estimado", "• Registre para o próximo turno qualquer insumo que esteja acabando"], paragrafos2: ["O cozinheiro temporário deixa a cozinha melhor do que encontrou."] }
   ],
