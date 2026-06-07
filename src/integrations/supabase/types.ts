@@ -586,6 +586,9 @@ export type Database = {
           portfolio: string | null
           raio_atuacao: number | null
           total_avaliacoes: number
+          treinamento_concluido: boolean | null
+          treinamento_data: string | null
+          treinamento_nota: number | null
           trust_score: number
           updated_at: string
           user_id: string
@@ -614,6 +617,9 @@ export type Database = {
           portfolio?: string | null
           raio_atuacao?: number | null
           total_avaliacoes?: number
+          treinamento_concluido?: boolean | null
+          treinamento_data?: string | null
+          treinamento_nota?: number | null
           trust_score?: number
           updated_at?: string
           user_id: string
@@ -642,6 +648,9 @@ export type Database = {
           portfolio?: string | null
           raio_atuacao?: number | null
           total_avaliacoes?: number
+          treinamento_concluido?: boolean | null
+          treinamento_data?: string | null
+          treinamento_nota?: number | null
           trust_score?: number
           updated_at?: string
           user_id?: string
@@ -729,6 +738,81 @@ export type Database = {
             columns: ["estabelecimento_id"]
             isOneToOne: false
             referencedRelation: "estabelecimentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      treinamentos: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          descricao: string | null
+          duracao_minutos: number | null
+          funcao: string | null
+          id: string
+          obrigatorio: boolean | null
+          ordem: number | null
+          titulo: string
+          url_video: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          duracao_minutos?: number | null
+          funcao?: string | null
+          id?: string
+          obrigatorio?: boolean | null
+          ordem?: number | null
+          titulo: string
+          url_video?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          duracao_minutos?: number | null
+          funcao?: string | null
+          id?: string
+          obrigatorio?: boolean | null
+          ordem?: number | null
+          titulo?: string
+          url_video?: string | null
+        }
+        Relationships: []
+      }
+      treinamentos_concluidos: {
+        Row: {
+          concluido_at: string | null
+          id: string
+          profissional_id: string | null
+          treinamento_id: string | null
+        }
+        Insert: {
+          concluido_at?: string | null
+          id?: string
+          profissional_id?: string | null
+          treinamento_id?: string | null
+        }
+        Update: {
+          concluido_at?: string | null
+          id?: string
+          profissional_id?: string | null
+          treinamento_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treinamentos_concluidos_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treinamentos_concluidos_treinamento_id_fkey"
+            columns: ["treinamento_id"]
+            isOneToOne: false
+            referencedRelation: "treinamentos"
             referencedColumns: ["id"]
           },
         ]
