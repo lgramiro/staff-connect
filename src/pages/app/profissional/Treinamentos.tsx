@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
-  BookOpen, CheckCircle2, Circle, PlayCircle, Award, AlertCircle, Check, 
+  BookOpen, CheckCircle2, Circle, Award, AlertCircle, Check, 
   ChevronLeft, ChevronRight, PartyPopper, Star, Clock, AlertTriangle, 
-  UserCheck, Shirt, ShieldCheck, MessageSquare, TrendingUp, HandWash, 
+  UserCheck, Shirt, ShieldCheck, MessageSquare, TrendingUp,
   Thermometer, ShieldAlert, LucideIcon 
 } from "lucide-react";
 import { toast } from "sonner";
@@ -34,7 +34,7 @@ interface SlideContent {
 
 const iconMap: Record<string, LucideIcon> = {
   PartyPopper, Star, Clock, AlertTriangle, UserCheck, Shirt, 
-  ShieldCheck, MessageSquare, TrendingUp, HandWash, Thermometer, ShieldAlert
+  ShieldCheck, MessageSquare, TrendingUp, Thermometer, ShieldAlert
 };
 
 const conteudoTreinamentos: Record<string, SlideContent[]> = {
@@ -59,7 +59,7 @@ const conteudoTreinamentos: Record<string, SlideContent[]> = {
     { titulo: "Trust Score", icone: "TrendingUp", paragrafos: ["O Trust Score combina: média das avaliações, taxa de comparecimento, tempo de cadastro e completude do perfil.", "💡 Dica: Você pode ver sua média e Trust Score a qualquer momento no seu dashboard."] }
   ],
   "Segurança e Higiene Alimentar": [
-    { titulo: "Higiene alimentar básica", icone: "HandWash", paragrafos: [], lista: ["Lave as mãos antes de iniciar o serviço e após qualquer pausa", "Nunca manipule alimentos com cortes ou feridas sem proteção", "Mantenha alimentos frios em refrigeração e quentes acima de 60°C"] },
+    { titulo: "Higiene alimentar básica", icone: "TrendingUp", paragrafos: [], lista: ["Lave as mãos antes de iniciar o serviço e após qualquer pausa", "Nunca manipule alimentos com cortes ou feridas sem proteção", "Mantenha alimentos frios em refrigeração e quentes acima de 60°C"] },
     { titulo: "Zona de perigo", icone: "Thermometer", paragrafos: ["Entre 5°C e 60°C as bactérias se multiplicam rapidamente. Evite manter alimentos nessa faixa de temperatura."] },
     { titulo: "Segurança no ambiente", icone: "ShieldAlert", paragrafos: ["💡 Em emergência médica: SAMU 192 ou Bombeiros 193."], lista: ["Sinalize imediatamente qualquer piso molhado", "Use os EPIs disponíveis", "Nunca improvise com equipamentos elétricos ou de gás", "Em caso de acidente: informe o responsável imediatamente"] }
   ]
@@ -70,6 +70,9 @@ const Treinamentos = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showQuiz, setShowQuiz] = useState(false);
+  const [selectedTreinamento, setSelectedTreinamento] = useState<any>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   const { data: profissional } = useProfissionalQuery(user?.id);
   const profissionalMutation = useProfissionalMutation(user?.id);
   const { data: treinamentos, isLoading: loadingTreinamentos } = useTreinamentos(profissional?.funcoes?.[0]);
@@ -83,6 +86,31 @@ const Treinamentos = () => {
       </div>
     );
   }
+
+  const slides = selectedTreinamento ? (conteudoTreinamentos[selectedTreinamento.titulo] || [
+    { 
+      titulo: selectedTreinamento.titulo, 
+      icone: "BookOpen", 
+      paragrafos: [selectedTreinamento.descricao || "Leia com atenção e clique em Concluir quando estiver pronto."],
+      lista: []
+    }
+  ]) : [];
+
+  const handleNextSlide = () => {
+    if (currentSlide < slides.length - 1) {
+      setCurrentSlide(currentSlide + 1);
+    } else {
+      handleMarcarConcluido(selectedTreinamento.id);
+      setSelectedTreinamento(null);
+      setCurrentSlide(0);
+    }
+  };
+
+  const handlePrevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
+  };
 
   const concluidosIds = new Set(concluidos?.map((c) => c.treinamento_id) || []);
   const total = treinamentos?.length || 0;
@@ -102,11 +130,11 @@ const Treinamentos = () => {
   };
 
   const handleAprovadoQuiz = async (acertos: number) => {
-    const percentual = (acertos / 10) * 100;
+    const percentualResult = (acertos / 10) * 100;
     try {
       await profissionalMutation.mutateAsync({
         treinamento_concluido: true,
-        treinamento_nota: Math.round(percentual),
+        treinamento_nota: Math.round(percentualResult),
         treinamento_data: new Date().toISOString()
       });
       toast.success("Certificação concluída com sucesso!");
