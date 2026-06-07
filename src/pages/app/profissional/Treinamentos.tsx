@@ -1,18 +1,25 @@
+import { useState } from "react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useTreinamentos, useTreinamentosConcluidos, useMarcarConcluido } from "@/hooks/queries/useTreinamentos";
-import { useProfissionalQuery } from "@/hooks/queries/useProfissional";
+import { useProfissionalQuery, useProfissionalMutation } from "@/hooks/queries/useProfissional";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, CheckCircle2, Circle, PlayCircle, Award, AlertCircle, ExternalLink } from "lucide-react";
+import { BookOpen, CheckCircle2, Circle, PlayCircle, Award, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { QuizTreinamento } from "@/components/treinamentos/QuizTreinamento";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Treinamentos = () => {
   usePageTitle("Treinamentos | Tem Staff");
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [showQuiz, setShowQuiz] = useState(false);
   const { data: profissional } = useProfissionalQuery(user?.id);
+  const profissionalMutation = useProfissionalMutation(user?.id);
   const { data: treinamentos, isLoading: loadingTreinamentos } = useTreinamentos(profissional?.funcoes?.[0]);
   const { data: concluidos, isLoading: loadingConcluidos } = useTreinamentosConcluidos();
   const mutation = useMarcarConcluido();
@@ -42,6 +49,36 @@ const Treinamentos = () => {
     }
   };
 
+  const handleAprovadoQuiz = async (acertos: number) => {
+    const percentual = (acertos / 10) * 100;
+    try {
+      await profissionalMutation.mutateAsync({
+        treinamento_concluido: true,
+        treinamento_nota: Math.round(percentual),
+        treinamento_data: new Date().toISOString()
+      });
+      toast.success("Certificação concluída com sucesso!");
+      navigate("/app/profissional");
+    } catch (error) {
+      toast.error("Erro ao salvar resultado.");
+    }
+  };
+
+  if (showQuiz) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Button variant="ghost" onClick={() => setShowQuiz(false)}>Voltar</Button>
+          <h1 className="text-2xl font-bold">Quiz de Certificação</h1>
+        </div>
+        <QuizTreinamento 
+          funcao={profissional?.funcoes?.[0] || "garcom"} 
+          onAprovado={(acertos) => handleAprovadoQuiz(acertos)} 
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
@@ -67,6 +104,15 @@ const Treinamentos = () => {
               </div>
               <Progress value={percentual} className="h-2" />
             </div>
+            {numConcluidos === total && total > 0 && !profissional?.treinamento_concluido && (
+              <Button 
+                className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                onClick={() => setShowQuiz(true)}
+              >
+                <Award className="mr-2 h-4 w-4" />
+                Fazer Quiz de Certificação
+              </Button>
+            )}
           </CardContent>
         </Card>
 

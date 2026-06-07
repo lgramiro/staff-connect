@@ -33,7 +33,7 @@ const bancoFuncoes: Record<string, Questao[]> = {
   sommelier: [{ id: 701, enunciado: "Qual é o protocolo correto ao apresentar uma garrafa de vinho?", alternativas: [{letra: 'A', texto: 'Já aberta', correta: false}, {letra: 'B', texto: 'Apresentar fechada, confirmar o pedido, abrir na frente do cliente e oferecer para provar', correta: true}, {letra: 'C', texto: 'Servir diretamente na taça', correta: false}, {letra: 'D', texto: 'Deixar na mesa para o cliente abrir', correta: false}], banco: 'sommelier' }, { id: 702, enunciado: "Qual é a temperatura ideal para servir espumante ou champanhe?", alternativas: [{letra: 'A', texto: '15-20°C', correta: false}, {letra: 'B', texto: '6-8°C', correta: true}, {letra: 'C', texto: 'Temperatura ambiente', correta: false}, {letra: 'D', texto: 'Acima de 25°C', correta: false}], banco: 'sommelier' }]
 };
 
-export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onAprovado: () => void }) => {
+export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onAprovado: (acertos: number) => void }) => {
   const [questoes, setQuestoes] = useState<Questao[]>([]);
   const [indice, setIndice] = useState(0);
   const [selecionada, setSelecionada] = useState<string | null>(null);
@@ -61,7 +61,7 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
         {percentual >= 70 ? (
           <div className="space-y-4">
             <p className="text-green-600 font-bold">Parabéns! Você foi aprovado.</p>
-            <Button onClick={onAprovado} className="w-full">Acessar o Tem Staff</Button>
+            <Button onClick={() => onAprovado(acertos)} className="w-full">Acessar o Tem Staff</Button>
           </div>
         ) : (
           <div className="space-y-4">
