@@ -38,7 +38,8 @@ interface SlideContent {
 const iconMap: Record<string, LucideIcon> = {
   PartyPopper, Star, Clock, AlertTriangle, UserCheck, Shirt, 
   ShieldCheck, MessageSquare, TrendingUp, Thermometer, ShieldAlert,
-  Droplets
+  Droplets, Utensils, ClipboardCheck, LayoutGrid, GlassWater,
+  Lock, HandMetal, UserPlus, ListChecks, Info, Zap, BookOpen
 };
 
 const conteudoTreinamentos: Record<string, SlideContent[]> = {
@@ -66,6 +67,23 @@ const conteudoTreinamentos: Record<string, SlideContent[]> = {
     { titulo: "Higiene alimentar básica", icone: "Droplets", paragrafos: [], lista: ["Lave as mãos antes de iniciar o serviço e após qualquer pausa", "Nunca manipule alimentos com cortes ou feridas sem proteção", "Mantenha alimentos frios em refrigeração e quentes acima de 60°C"] },
     { titulo: "Zona de perigo", icone: "Thermometer", paragrafos: ["Entre 5°C e 60°C as bactérias se multiplicam rapidamente. Evite manter alimentos nessa faixa de temperatura."] },
     { titulo: "Segurança no ambiente", icone: "ShieldAlert", paragrafos: ["💡 Em emergência médica: SAMU 192 ou Bombeiros 193."], lista: ["Sinalize imediatamente qualquer piso molhado", "Use os EPIs disponíveis", "Nunca improvise com equipamentos elétricos ou de gás", "Em caso de acidente: informe o responsável imediatamente"] }
+  ],
+  "Técnicas de Serviço de Mesa": [
+    { titulo: "Mise en place", icone: "LayoutGrid", paragrafos: ["A preparação correta garante que o serviço flua sem interrupções."], lista: ["Verifique se os talheres e taças estão polidos e sem manchas", "Garanta que galheteiros e saleiros estejam cheios", "Tenha sempre guardanapos extras à mão"] },
+    { titulo: "Sequência de serviço", icone: "Utensils", paragrafos: ["Siga sempre o protocolo da casa, mas o padrão básico é:"], lista: ["Sirva as bebidas primeiro", "Sirva as mulheres e os mais velhos primeiro", "Pratos principais saem juntos para a mesma mesa", "Retire os pratos apenas quando todos terminarem"] }
+  ],
+  "Anotação e Confirmação de Pedidos": [
+    { titulo: "Como anotar pedidos", icone: "ClipboardCheck", paragrafos: ["Anotar corretamente evita desperdício e reclamações."], lista: ["Confirme sempre o ponto da carne", "Pergunte sobre acompanhamentos opcionais", "Repita o pedido completo para o cliente antes de sair da mesa"] },
+    { titulo: "Alergias e Restrições", icone: "ShieldAlert", paragrafos: ["Isso é vital para a segurança do cliente."], lista: ["Destaque alergias na comanda em letras garrafais", "Comunique verbalmente à cozinha ou ao bar", "Confirme os ingredientes se o cliente tiver dúvidas"] }
+  ],
+  "Mise en Place e Organização da Praça": [
+    { titulo: "Organização da praça (Cozinha)", icone: "LayoutGrid", paragrafos: ["Cozinha organizada é cozinha rápida."], lista: ["Tenha todos os insumos picados e pesados antes do serviço", "Mantenha seus utensílios limpos e no mesmo lugar", "Siga o sistema PEPS (Primeiro que Entra, Primeiro que Sai)"] }
+  ],
+  "Mise en Place do Bar": [
+    { titulo: "Preparação do Bar", icone: "GlassWater", paragrafos: ["O bar deve estar pronto antes do primeiro drink."], lista: ["Garanta que o gelo esteja reposto", "Pique frutas frescas para guarnição", "Verifique se os xaropes e sucos estão na validade"] }
+  ],
+  "Higiene na Cozinha": [
+    { titulo: "Protocolos de Higiene", icone: "Droplets", paragrafos: ["A segurança do cliente começa na sua mão."], lista: ["Use touca cobrindo todo o cabelo", "Mantenha unhas curtas e sem esmalte", "Lave as mãos a cada troca de tarefa"] }
   ]
 };
 
