@@ -210,35 +210,51 @@ const Treinamentos = () => {
           )}
         </div>
 
-        <Card>
+        <Card className="overflow-hidden border-primary/20">
+          <CardHeader className="bg-primary/5 pb-4">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              Status de Certificação
+            </CardTitle>
+          </CardHeader>
           <CardContent className="pt-6">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm font-medium">
-                <span>Seu progresso</span>
-                <span>{numConcluidos} de {total} concluídos</span>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm font-medium">
+                  <span>Progresso Geral</span>
+                  <span>{numConcluidos} de {total} concluídos</span>
+                </div>
+                <Progress value={percentual} className="h-3" />
               </div>
-              <Progress value={percentual} className="h-2" />
+
+              {numConcluidos === total && total > 0 && !profissional?.treinamento_concluido ? (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+                    <Zap className="w-5 h-5 shrink-0 text-green-600 animate-pulse" />
+                    <span>Excelente! Você concluiu todos os módulos. Agora faça o quiz final para obter sua certificação.</span>
+                  </div>
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700 h-14 text-lg font-bold shadow-lg shadow-green-200"
+                    onClick={() => setShowQuiz(true)}
+                  >
+                    <Award className="mr-2 h-6 w-6" />
+                    INICIAR QUIZ DE CERTIFICAÇÃO
+                  </Button>
+                </div>
+              ) : numConcluidos < total && (
+                <div className="flex items-center gap-2 p-3 bg-muted/50 border rounded-lg text-muted-foreground text-sm italic">
+                  <Lock className="w-4 h-4 shrink-0" />
+                  <span>O quiz final será liberado automaticamente após a conclusão de todos os {total} módulos.</span>
+                </div>
+              )}
             </div>
-            {numConcluidos === total && total > 0 && !profissional?.treinamento_concluido ? (
-              <Button 
-                className="w-full mt-6 bg-green-600 hover:bg-green-700 animate-pulse py-6 text-lg"
-                onClick={() => setShowQuiz(true)}
-              >
-                <Award className="mr-2 h-6 w-6" />
-                Fazer Quiz de Certificação
-              </Button>
-            ) : numConcluidos < total && (
-              <p className="text-xs text-muted-foreground mt-4 text-center">
-                O Quiz de Certificação será liberado após você concluir todos os treinamentos acima.
-              </p>
-            )}
           </CardContent>
         </Card>
 
         {!obrigatoriosConcluidos && (
-          <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <span>Por favor, complete todos os treinamentos obrigatórios para melhorar seu Trust Score e visibilidade.</span>
+          <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+            <AlertCircle className="w-5 h-5 shrink-0 text-amber-600" />
+            <p><strong>Atenção:</strong> Complete os treinamentos obrigatórios para ser aprovado nos processos seletivos dos estabelecimentos.</p>
           </div>
         )}
       </div>
@@ -247,45 +263,45 @@ const Treinamentos = () => {
         {treinamentos?.map((t) => {
           const isConcluido = concluidosIds.has(t.id);
           return (
-            <Card key={t.id} className={isConcluido ? "opacity-80" : ""}>
+            <Card key={t.id} className={cn("transition-all duration-200", isConcluido ? "bg-muted/30" : "hover:border-primary/50 shadow-sm")}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start gap-2">
-                  <CardTitle className="text-lg leading-tight">{t.titulo}</CardTitle>
+                  <CardTitle className="text-base leading-tight font-bold">{t.titulo}</CardTitle>
                   {isConcluido ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />
+                    <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                   ) : (
-                    <Circle className="w-6 h-6 text-muted-foreground shrink-0" />
+                    <Circle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                   )}
                 </div>
-                <CardDescription className="line-clamp-2">{t.descricao}</CardDescription>
+                <CardDescription className="line-clamp-2 text-xs">{t.descricao}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {t.obrigatorio && (
-                    <Badge variant="destructive" className="text-[10px] uppercase">Obrigatório</Badge>
+                    <Badge variant="destructive" className="text-[9px] h-5 px-1.5 uppercase font-bold tracking-wider">Obrigatório</Badge>
                   )}
                   {t.funcao !== "todos" && (
-                    <Badge variant="secondary" className="text-[10px] uppercase">{t.funcao}</Badge>
+                    <Badge variant="secondary" className="text-[9px] h-5 px-1.5 uppercase">{t.funcao}</Badge>
                   )}
-                  <Badge variant="outline" className="text-[10px]">{t.duracao_minutos} min</Badge>
+                  <Badge variant="outline" className="text-[9px] h-5 px-1.5">{t.duracao_minutos} min</Badge>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   {isConcluido ? (
-                    <Badge className="w-full justify-center bg-green-100 text-green-700 border-green-200 py-2">
+                    <Badge className="w-full justify-center bg-green-100 text-green-700 border-green-200 py-2 font-medium">
                       <Check className="w-4 h-4 mr-2" />
-                      Concluído
+                      Módulo Concluído
                     </Badge>
                   ) : (
                     <Button 
-                      className="w-full gap-2" 
+                      className="w-full gap-2 font-semibold" 
                       onClick={() => {
                         setSelectedTreinamento(t);
                         setCurrentSlide(0);
                       }}
                     >
                       <BookOpen className="w-4 h-4" />
-                      Ver Treinamento
+                      Começar Treinamento
                     </Button>
                   )}
                 </div>
@@ -296,78 +312,94 @@ const Treinamentos = () => {
       </div>
 
       <Dialog open={!!selectedTreinamento} onOpenChange={(open) => !open && setSelectedTreinamento(null)}>
-        <DialogContent className="max-w-3xl sm:h-auto h-[100dvh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="p-4 border-b shrink-0">
+        <DialogContent className="max-w-3xl sm:h-auto h-[100dvh] flex flex-col p-0 overflow-hidden gap-0">
+          <DialogHeader className="p-4 border-b shrink-0 bg-white z-10">
             <div className="flex flex-col gap-2">
-              <DialogTitle className="text-lg">{selectedTreinamento?.titulo}</DialogTitle>
+              <DialogTitle className="text-lg pr-8">{selectedTreinamento?.titulo}</DialogTitle>
               <div className="space-y-1">
-                <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold">
-                  <span>Slide {currentSlide + 1} de {slides.length}</span>
+                <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                  <span>Página {currentSlide + 1} de {slides.length}</span>
                   <span>{Math.round(((currentSlide + 1) / slides.length) * 100)}%</span>
                 </div>
-                <Progress value={((currentSlide + 1) / slides.length) * 100} className="h-1" />
+                <Progress value={((currentSlide + 1) / slides.length) * 100} className="h-1.5" />
               </div>
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center text-center">
-            {slides[currentSlide] && (
-              <div className="space-y-6 w-full max-w-xl animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  {(() => {
-                    const Icon = iconMap[slides[currentSlide].icone] || BookOpen;
-                    return <Icon className="w-10 h-10 text-primary" />;
-                  })()}
-                </div>
-                <h2 className="text-2xl font-bold text-foreground">{slides[currentSlide].titulo}</h2>
-                
-                <div className="space-y-4 text-left">
-                  {slides[currentSlide].paragrafos.map((p, i) => (
-                    <p key={i} className="text-muted-foreground leading-relaxed">{p}</p>
-                  ))}
+          <ScrollArea className="flex-1 bg-white">
+            <div className="p-6 sm:p-10 flex flex-col items-center justify-center min-h-[50vh] text-center">
+              {slides[currentSlide] && (
+                <div className="space-y-8 w-full max-w-xl animate-in fade-in slide-in-from-right-4 duration-500">
+                  <div className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-6 transform rotate-3 hover:rotate-0 transition-transform duration-300">
+                    {(() => {
+                      const Icon = iconMap[slides[currentSlide].icone] || BookOpen;
+                      return <Icon className="w-12 h-12 text-primary" />;
+                    })()}
+                  </div>
                   
-                  {slides[currentSlide].lista && slides[currentSlide].lista.length > 0 && (
-                    <ul className="space-y-2 mt-4">
-                      {slides[currentSlide].lista.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-muted-foreground">
-                          <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="space-y-3">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+                      {slides[currentSlide].titulo}
+                    </h2>
+                    <div className="h-1 w-12 bg-primary mx-auto rounded-full" />
+                  </div>
+                  
+                  <div className="space-y-6 text-left">
+                    {slides[currentSlide].paragrafos.map((p, i) => (
+                      <p key={i} className="text-base sm:text-lg text-muted-foreground leading-relaxed font-medium">{p}</p>
+                    ))}
+                    
+                    {slides[currentSlide].lista && slides[currentSlide].lista.length > 0 && (
+                      <ul className="space-y-3 mt-6 bg-primary/5 p-5 rounded-2xl border border-primary/10">
+                        {slides[currentSlide].lista.map((item, i) => (
+                          <li key={i} className="flex items-start gap-3 text-sm sm:text-base text-foreground font-medium">
+                            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
 
-                  {slides[currentSlide].paragrafos2?.map((p, i) => (
-                    <p key={i} className="text-muted-foreground leading-relaxed mt-4 italic">{p}</p>
-                  ))}
+                    {slides[currentSlide].paragrafos2?.map((p, i) => (
+                      <div key={i} className="flex items-center gap-2 p-4 bg-muted rounded-xl text-muted-foreground text-sm italic border-l-4 border-primary">
+                        <Info className="w-5 h-5 shrink-0 text-primary" />
+                        <p>{p}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </ScrollArea>
 
-          <DialogFooter className="p-4 border-t flex flex-row justify-between sm:justify-between items-center bg-muted/30 shrink-0">
+          <div className="p-4 border-t flex flex-row justify-between items-center bg-muted/30 shrink-0 gap-4">
             <Button 
-              variant="ghost" 
+              variant="outline" 
               onClick={handlePrevSlide} 
               disabled={currentSlide === 0}
-              className="gap-1"
+              className="flex-1 sm:flex-none gap-2 h-12"
             >
               <ChevronLeft className="w-4 h-4" /> Anterior
             </Button>
             
             <Button 
               onClick={handleNextSlide} 
-              className="gap-1 px-8"
+              className="flex-[2] sm:flex-none gap-2 h-12 min-w-[140px] font-bold"
               disabled={mutation.isPending}
             >
               {currentSlide === slides.length - 1 
-                ? (mutation.isPending ? "Salvando..." : "Concluir e Fechar") 
+                ? (mutation.isPending ? "Salvando..." : "Concluir") 
                 : "Próximo"} 
               {currentSlide !== slides.length - 1 && <ChevronRight className="w-4 h-4" />}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+export default Treinamentos;
     </div>
   );
 };
