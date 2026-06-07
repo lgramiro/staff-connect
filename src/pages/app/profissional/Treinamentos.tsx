@@ -198,7 +198,7 @@ const Treinamentos = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-primary" />
             Treinamentos
@@ -239,7 +239,7 @@ const Treinamentos = () => {
                     onClick={() => setShowQuiz(true)}
                   >
                     <Award className="mr-2 h-6 w-6" />
-                    INICIAR QUIZ DE CERTIFICAÇÃO
+                    <span className="hidden sm:inline">INICIAR QUIZ DE CERTIFICAÇÃO</span><span className="sm:hidden">Fazer Quiz</span>
                   </Button>
                 </div>
               ) : numConcluidos < total && (
@@ -260,7 +260,7 @@ const Treinamentos = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {treinamentos?.map((t) => {
           const isConcluido = concluidosIds.has(t.id);
           return (
@@ -313,7 +313,7 @@ const Treinamentos = () => {
       </div>
 
       <Dialog open={!!selectedTreinamento} onOpenChange={(open) => !open && setSelectedTreinamento(null)}>
-        <DialogContent className="max-w-3xl sm:h-auto h-[100dvh] flex flex-col p-0 overflow-hidden gap-0">
+        <DialogContent className="sm:max-w-lg max-w-full h-[90vh] sm:h-auto flex flex-col p-0 sm:p-6">
           <DialogHeader className="p-4 border-b shrink-0 bg-white z-10">
             <div className="flex flex-col gap-2">
               <DialogTitle className="text-lg pr-8">{selectedTreinamento?.titulo}</DialogTitle>
@@ -327,7 +327,7 @@ const Treinamentos = () => {
             </div>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 bg-white">
+          <ScrollArea className="h-full bg-white">
             <div className="p-6 sm:p-10 flex flex-col items-center justify-center min-h-[50vh] text-center">
               {slides[currentSlide] && (
                 <div className="space-y-8 w-full max-w-xl animate-in fade-in slide-in-from-right-4 duration-500">
@@ -378,14 +378,14 @@ const Treinamentos = () => {
               variant="outline" 
               onClick={handlePrevSlide} 
               disabled={currentSlide === 0}
-              className="flex-1 sm:flex-none gap-2 h-12"
+              className="h-11 flex-1 gap-2"
             >
               <ChevronLeft className="w-4 h-4" /> Anterior
             </Button>
             
             <Button 
               onClick={handleNextSlide} 
-              className="flex-[2] sm:flex-none gap-2 h-12 min-w-[140px] font-bold"
+              className="h-11 flex-1 gap-2 font-bold"
               disabled={mutation.isPending}
             >
               {currentSlide === slides.length - 1 
