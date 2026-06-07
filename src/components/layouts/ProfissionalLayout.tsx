@@ -37,17 +37,17 @@ const desktopNavItems: NavItem[] = [
 ];
 
 const primaryMobileItems: NavItem[] = [
+  { icon: Home, label: "Início", path: "/app/profissional" },
   { icon: Search, label: "Oportunidades", path: "/app/profissional/oportunidades" },
   { icon: FileText, label: "Candidaturas", path: "/app/profissional/candidaturas" },
-  { icon: User, label: "Perfil", path: "/app/profissional/perfil" },
+  { icon: BookOpen, label: "Treinamentos", path: "/app/profissional/treinamentos" },
 ];
 
 const moreMenuItems: NavItem[] = [
-  { icon: Home, label: "Início", path: "/app/profissional" },
+  { icon: User, label: "Perfil", path: "/app/profissional/perfil" },
   { icon: FileText, label: "Documentos", path: "/app/profissional/documentos" },
   { icon: Trophy, label: "Ranking", path: "/app/profissional/ranking" },
   { icon: Star, label: "Avaliações", path: "/app/profissional/avaliacoes" },
-  { icon: BookOpen, label: "Treinamentos", path: "/app/profissional/treinamentos" },
 ];
 
 export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
@@ -113,7 +113,7 @@ export const ProfissionalLayout = ({ children }: ProfissionalLayoutProps) => {
           paddingBottom: "env(safe-area-inset-bottom)",
         }}
       >
-        <div className="grid grid-cols-4 h-16">
+        <div className="grid grid-cols-5 h-16">
           {primaryMobileItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
