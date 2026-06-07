@@ -33,6 +33,14 @@ const navItems = [
   { icon: Heart, label: "Favoritos", path: "/app/estabelecimento/favoritos" },
 ];
 
+const mobileBottomNavItems = [
+  { icon: CalendarDays, label: "Dashboard", path: "/app/estabelecimento" },
+  { icon: Users, label: "Candidaturas", path: "/app/estabelecimento/candidaturas" },
+  { icon: Clock, label: "Hoje", path: "/app/estabelecimento/hoje" },
+  { icon: Star, label: "Avaliar", path: "/app/estabelecimento/avaliar" },
+  { icon: CreditCard, label: "Planos", path: "/app/estabelecimento/planos" },
+];
+
 export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -140,14 +148,14 @@ export const EstabelecimentoLayout = ({ children }: EstabelecimentoLayoutProps) 
       )}
 
       {/* Bottom Mobile Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 glass-strong border-t border-border md:hidden">
-        <div className="flex py-2 overflow-x-auto no-scrollbar">
-          {navItems.map((item) => {
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="grid grid-cols-5 h-16">
+          {mobileBottomNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link key={item.path} to={item.path} className="flex flex-col items-center px-2 py-1 flex-1 min-w-[64px]">
+              <Link key={item.path} to={item.path} className="flex flex-col items-center justify-center gap-1">
                 <item.icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-                <span className={`text-[10px] mt-1 truncate max-w-full ${isActive ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                <span className={`text-[11px] font-medium leading-none ${isActive ? "text-primary" : "text-muted-foreground"}`}>
                   {item.label}
                 </span>
               </Link>
