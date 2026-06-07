@@ -109,15 +109,27 @@ const Treinamentos = () => {
     );
   }
 
-  const slides = selectedTreinamento ? (conteudoTreinamentos[selectedTreinamento.titulo] || [
-    { 
-      titulo: selectedTreinamento.titulo, 
-      icone: "BookOpen", 
-      paragrafos: [selectedTreinamento.descricao || "Leia com atenção e clique em Concluir quando estiver pronto."],
-      lista: [],
-      paragrafos2: []
+  const getSlides = (titulo: string) => {
+    const key = Object.keys(conteudoTreinamentos).find(
+      k => k.toLowerCase().trim() === titulo.toLowerCase().trim()
+    );
+    
+    if (key && conteudoTreinamentos[key]) {
+      return conteudoTreinamentos[key];
     }
-  ]) : [];
+    
+    return [
+      { 
+        titulo: titulo, 
+        icone: "BookOpen", 
+        paragrafos: [selectedTreinamento?.descricao || "Leia com atenção este módulo de treinamento."],
+        lista: ["Siga as orientações do estabelecimento", "Em caso de dúvida, pergunte ao responsável", "Mantenha a postura profissional"],
+        paragrafos2: ["Clique em Concluir quando estiver pronto."]
+      }
+    ];
+  };
+
+  const slides = selectedTreinamento ? getSlides(selectedTreinamento.titulo) : [];
 
   const handleNextSlide = () => {
     if (currentSlide < slides.length - 1) {
