@@ -46,9 +46,10 @@ const conteudoTreinamentos: Record<string, SlideContent[]> = {
     { titulo: "Quando você confirma, o estabelecimento conta com você", icone: "Clock", paragrafos: ["Atrasos e faltas causam transtornos sérios para a equipe e para os clientes."], lista: ["Chegue com pelo menos 10 minutos de antecedência", "Se surgir imprevisto, avise pelo app com o máximo de antecedência", "Nunca abandone um serviço no meio sem comunicação", "Cumpra o horário completo combinado"] },
     { titulo: "Consequências de faltas não justificadas", icone: "AlertTriangle", paragrafos: ["Faltas sem aviso têm impacto direto no seu perfil."], lista: ["📉 Seu Trust Score cai automaticamente", "🔕 Você pode ser removido de listas de candidatos", "⭐ O estabelecimento pode te avaliar negativamente"], paragrafos2: ["💡 Dica: No app você encontra o botão 'Reportar imprevisto' — use sempre que precisar cancelar."] }
   ],
-  "Apresentação Pessoal": [
-    { titulo: "Checklist de apresentação", icone: "UserCheck", paragrafos: ["Sua aparência é a primeira impressão que o cliente terá."], lista: ["✅ Cabelo limpo e preso (para quem trabalha com alimentos, sempre preso)", "✅ Barba feita ou bem aparada", "✅ Unhas curtas e limpas — sem esmalte para quem manipula alimentos", "✅ Uniforme limpo, passado e completo antes de sair de casa", "✅ Sapato fechado e antiderrapante (obrigatório em cozinhas)", "✅ Sem perfumes fortes", "✅ Sem acessórios excessivos"] },
-    { titulo: "Sem uniforme?", icone: "Shirt", paragrafos: ["Se o estabelecimento não fornecer uniforme, use roupa preta, limpa e formal.", "💡 Dica: Leve sempre uma muda de roupa reserva para imprevistos no caminho."] }
+  ],
+  "Postura Profissional": [
+    { titulo: "Comportamento no ambiente de trabalho", icone: "ShieldCheck", paragrafos: [], lista: ["Cumprimente a equipe ao chegar e apresente-se ao responsável", "Celular no bolso e no silencioso durante todo o serviço", "Nunca use o celular na frente dos clientes", "Respeite a hierarquia: ouça antes de questionar", "Não discuta com colegas ou superiores na frente de clientes", "Trate todos com respeito e cordialidade"] },
+    { titulo: "Em caso de conflito", icone: "MessageSquare", paragrafos: ["Registre pelo app após o turno. Nunca resolva conflitos em público.", "💡 Dica: Um 'bom dia' e um sorriso custam zero e valem muito na avaliação final."] }
   ],
   "Postura Profissional": [
     { titulo: "Comportamento no ambiente de trabalho", icone: "ShieldCheck", paragrafos: [], lista: ["Cumprimente a equipe ao chegar e apresente-se ao responsável", "Celular no bolso e no silencioso durante todo o serviço", "Nunca use o celular na frente dos clientes", "Respeite a hierarquia: ouça antes de questionar", "Não discuta com colegas ou superiores na frente de clientes", "Trate todos com respeito e cordialidade"] },
@@ -58,8 +59,12 @@ const conteudoTreinamentos: Record<string, SlideContent[]> = {
     { titulo: "Avaliação de 1 a 5 estrelas", icone: "Star", paragrafos: ["Após cada serviço, o estabelecimento avalia seu desempenho."], lista: ["🟢 Média acima de 4,5 → Perfil em destaque nas buscas", "🟡 Média entre 3,5 e 4,4 → Perfil normal", "🔴 Média abaixo de 3,5 → Perfil com restrições"] },
     { titulo: "Trust Score", icone: "TrendingUp", paragrafos: ["O Trust Score combina: média das avaliações, taxa de comparecimento, tempo de cadastro e completude do perfil.", "💡 Dica: Você pode ver sua média e Trust Score a qualquer momento no seu dashboard."] }
   ],
+  "Apresentação Pessoal": [
+    { titulo: "Checklist de apresentação", icone: "UserCheck", paragrafos: ["Sua aparência é a primeira impressão que o cliente terá."], lista: ["Cabelo limpo e preso (para quem trabalha com alimentos, sempre preso)", "Barba feita ou bem aparada", "Unhas curtas e limpas — sem esmalte para quem manipula alimentos", "Uniforme limpo, passado e completo antes de sair de casa", "Sapato fechado e antiderrapante (obrigatório em cozinhas)", "Sem perfumes fortes", "Sem acessórios excessivos"] },
+    { titulo: "Sem uniforme?", icone: "Shirt", paragrafos: ["Se o estabelecimento não fornecer uniforme, use roupa preta, limpa e formal.", "💡 Dica: Leve sempre uma muda de roupa reserva para imprevistos no caminho."] }
+  ],
   "Segurança e Higiene Alimentar": [
-    { titulo: "Higiene alimentar básica", icone: "TrendingUp", paragrafos: [], lista: ["Lave as mãos antes de iniciar o serviço e após qualquer pausa", "Nunca manipule alimentos com cortes ou feridas sem proteção", "Mantenha alimentos frios em refrigeração e quentes acima de 60°C"] },
+    { titulo: "Higiene alimentar básica", icone: "HandWash", paragrafos: [], lista: ["Lave as mãos antes de iniciar o serviço e após qualquer pausa", "Nunca manipule alimentos com cortes ou feridas sem proteção", "Mantenha alimentos frios em refrigeração e quentes acima de 60°C"] },
     { titulo: "Zona de perigo", icone: "Thermometer", paragrafos: ["Entre 5°C e 60°C as bactérias se multiplicam rapidamente. Evite manter alimentos nessa faixa de temperatura."] },
     { titulo: "Segurança no ambiente", icone: "ShieldAlert", paragrafos: ["💡 Em emergência médica: SAMU 192 ou Bombeiros 193."], lista: ["Sinalize imediatamente qualquer piso molhado", "Use os EPIs disponíveis", "Nunca improvise com equipamentos elétricos ou de gás", "Em caso de acidente: informe o responsável imediatamente"] }
   ]
@@ -185,14 +190,18 @@ const Treinamentos = () => {
               </div>
               <Progress value={percentual} className="h-2" />
             </div>
-            {numConcluidos === total && total > 0 && !profissional?.treinamento_concluido && (
+            {numConcluidos === total && total > 0 && !profissional?.treinamento_concluido ? (
               <Button 
-                className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                className="w-full mt-6 bg-green-600 hover:bg-green-700 animate-pulse py-6 text-lg"
                 onClick={() => setShowQuiz(true)}
               >
-                <Award className="mr-2 h-4 w-4" />
+                <Award className="mr-2 h-6 w-6" />
                 Fazer Quiz de Certificação
               </Button>
+            ) : numConcluidos < total && (
+              <p className="text-xs text-muted-foreground mt-4 text-center">
+                O Quiz de Certificação será liberado após você concluir todos os treinamentos acima.
+              </p>
             )}
           </CardContent>
         </Card>
