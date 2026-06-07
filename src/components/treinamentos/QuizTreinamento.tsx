@@ -55,11 +55,12 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
   }, [funcao]);
 
   if (finalizado) {
-    const percentual = (acertos / 10) * 100;
+    const totalQuestoes = questoes.length || 1;
+    const percentual = (acertos / totalQuestoes) * 100;
     return (
       <Card className="text-center p-6 space-y-4">
         <h2 className="text-xl font-bold">Resultado</h2>
-        <p className="text-lg">{acertos} de 10 acertos — {percentual}%</p>
+        <p className="text-lg">{acertos} de {totalQuestoes} acertos — {Math.round(percentual)}%</p>
         {percentual >= 70 ? (
           <div className="space-y-4">
             <p className="text-green-600 font-bold">Parabéns! Você foi aprovado.</p>
@@ -78,14 +79,16 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
   const q = questoes[indice];
   if (!q) return null;
 
+  const totalQuestoes = questoes.length;
+
   return (
     <Card className="p-6 space-y-6">
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span>Questão {indice + 1} de 10</span>
-          <span>{Math.round(((indice) / 10) * 100)}%</span>
+          <span>Questão {indice + 1} de {totalQuestoes}</span>
+          <span>{Math.round(((indice) / totalQuestoes) * 100)}%</span>
         </div>
-        <Progress value={(indice / 10) * 100} />
+        <Progress value={(indice / totalQuestoes) * 100} />
       </div>
       
       <h3 className="text-lg font-medium">{q.enunciado}</h3>
@@ -95,10 +98,10 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
           <Button 
             key={alt.letra}
             variant={selecionada === alt.letra ? "default" : "outline"}
-            className="w-full justify-start text-left"
+            className="w-full justify-start text-left h-auto py-3 px-4 whitespace-normal"
             onClick={() => setSelecionada(alt.letra)}
           >
-            {alt.letra}. {alt.texto}
+            <span className="font-bold mr-2">{alt.letra}.</span> {alt.texto}
           </Button>
         ))}
       </div>
@@ -108,11 +111,15 @@ export const QuizTreinamento = ({ funcao, onAprovado }: { funcao: string; onApro
         disabled={!selecionada} 
         onClick={() => {
           if (q.alternativas.find(a => a.letra === selecionada)?.correta) setAcertos(prev => prev + 1);
-          if (indice === 9) setFinalizado(true);
-          else { setIndice(prev => prev + 1); setSelecionada(null); }
+          if (indice === totalQuestoes - 1) {
+            setFinalizado(true);
+          } else { 
+            setIndice(prev => prev + 1); 
+            setSelecionada(null); 
+          }
         }}
       >
-        {indice === 9 ? "Ver Resultado" : "Próxima"}
+        {indice === totalQuestoes - 1 ? "Ver Resultado" : "Próxima"}
       </Button>
     </Card>
   );
