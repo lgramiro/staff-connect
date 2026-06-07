@@ -41,6 +41,7 @@ const ProfissionalAvaliacoes = lazy(() => import("./pages/app/profissional/Avali
 const MeusDocumentos = lazy(() => import("./pages/app/profissional/MeusDocumentos"));
 const RankingEstabelecimentos = lazy(() => import("./pages/app/profissional/RankingEstabelecimentos"));
 const EstabelecimentoPublico = lazy(() => import("./pages/app/profissional/EstabelecimentoPublico"));
+const ProfissionalTreinamentos = lazy(() => import("./pages/app/profissional/Treinamentos"));
 
 
 // Admin routes
@@ -118,6 +119,7 @@ const App = () => (
               <Route path="/app/profissional/documentos" element={<ProtectedRoute allowedRoles={["profissional"]}><MeusDocumentos /></ProtectedRoute>} />
               <Route path="/app/profissional/ranking" element={<ProtectedRoute allowedRoles={["profissional"]}><RankingEstabelecimentos /></ProtectedRoute>} />
               <Route path="/app/profissional/estabelecimento/:id" element={<ProtectedRoute allowedRoles={["profissional"]}><EstabelecimentoPublico /></ProtectedRoute>} />
+              <Route path="/app/profissional/treinamentos" element={<ProtectedRoute allowedRoles={["profissional"]}><ProfissionalTreinamentos /></ProtectedRoute>} />
 
 
               {/* Admin Routes */}
